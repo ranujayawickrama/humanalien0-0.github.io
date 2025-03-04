@@ -147,6 +147,7 @@ function bounceIfNeeded() {
   }
 }
 
+
 // sssssssssssssssssssssssssssssssssssssssssssss
 
 function isArrowMoving() {
@@ -191,17 +192,6 @@ function keyPressed() {
 }
 console.log(targetX, targetY);
 
-function bounceIfNeeded() {
-  // Bounce horizontally
-  if (targetX <= width / 1.5 || targetX + targetWidth >= width) {
-    targetDx *= -1;
-  }
-
-  // Bounce vertically
-  if (targetY <= 0 || targetY + targetHeight >= height) {
-    targetDy *= -1;
-  }
-}
 
 // Fix target position to prevent it from getting stuck at the left and right boundaries
 function withinTarget() {
@@ -247,9 +237,9 @@ function mouseWheel(event) {
   return false; // Prevent the default action of scrolling (like page scroll)
 }
 
-// function displayVolume() {
-//   fill("lightgreen");
-//   rect((height * 1.05), 0, height * 0.325, height / 10);
-//   fill(0); // Black text color
-//   text("volume: " + score , height * 1.075, height * 0.075); // Display score at the top-left
-// }
+function displayVolume() {
+  fill("lightgreen");
+  rect((height * 1.05), 0, height * 0.325, height / 10);
+  fill(0); // Black text color
+  text("volume: " + score , height * 1.075, height * 0.075); // Display score at the top-left
+}
