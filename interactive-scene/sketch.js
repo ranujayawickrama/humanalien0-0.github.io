@@ -1,3 +1,6 @@
+
+
+
 // images
 let archer;
 let target;
@@ -88,9 +91,11 @@ function setup() {
 function draw() {
   if (showIntro) {
     displayIntroScreen(); // Show the intro screen
-  } else if (showOutro) {
+  }
+  else if (showOutro) {
     displayOutroScreen(); // Show the outro screen
-  } else {
+  }
+  else {
 
     // show gameplay
     image(myBackground, 0, 0, width, height); //display background
@@ -229,9 +234,10 @@ function keyPressed() {
   }
 
   // if the outro screen is active and r or R is pressed, restart the game
-  else if ((showOutro && key === "r") || key === "R") {
+  else if (showOutro && key === "r" || key === "R") {
     restartGame();
-  } else {
+  }
+  else {
 
     // arrow is shot when pressed space bar and when it is in archers hand
     if (keyCode === 32 && !moving) {
@@ -245,7 +251,8 @@ function keyPressed() {
     if (key === "v" || key === "V") {
       if (bgMusic.isPlaying()) {
         bgMusic.pause();
-      } else {
+      }
+      else {
         bgMusic.loop();
       }
     }
@@ -266,11 +273,14 @@ function withinTarget() {
       targetDy = random(height / 90, height / 70);
 
       // stop target from getting stuck on the left side
-      if (targetX + height * 0.1 <= width / 1.5) targetX = width / 1.4;
+      if (targetX + height * 0.1 <= width / 1.5) {
+        targetX = width / 1.4;
+      }
 
       // Prevent target from getting stuck on the right side
-      if (targetX + targetWidth >= width)
+      if (targetX + targetWidth >= width) {
         targetX = width - targetWidth - height / 40;
+      }
     }
 
     arrowState = "inside target"; //change the state of the arrow
@@ -283,7 +293,8 @@ function mouseWheel(event) {
 
     // Scroll down to decrease volume
     bgMusic.setVolume(max(0, bgMusic.getVolume() - volumeChangeAmount));
-  } else {
+  }
+  else {
 
     // Scroll up to increase volume
     bgMusic.setVolume(min(1, bgMusic.getVolume() + volumeChangeAmount));
@@ -362,7 +373,7 @@ function displayOutroScreen() {
   textAlign(CENTER, CENTER);
   text("Game Over!", width / 2, height / 3);
   text("Your Score: " + score, width / 2, height / 2);
-  text("Press R to Restart", width / 2, (height * 2) / 3);
+  text("Press R to Restart", width / 2, height * 2 / 3);
 }
 
 //if 60 seconds have passed show the outro screen
