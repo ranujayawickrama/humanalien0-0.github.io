@@ -55,7 +55,7 @@ function spawnBall() {
   let someBall = {
     x: random(width),
     y: random(height),
-    radius: random(15, 40),
+    radius: random(80, 100),
     dx: random(-5, 5),
     dy: random(-5, 5),
   };
