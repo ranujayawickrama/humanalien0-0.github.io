@@ -2,8 +2,8 @@
 // Using Object Notation and Arrays
 // March 7, 2025
 
-const LINE_SIZE = 25;
 let lineArray = [];
+const LINE_SIZE = 25;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
