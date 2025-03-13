@@ -5,7 +5,7 @@
 
 let timeX = 0;
 let timeY = 1000;
-let deltaTime = 0.01;
+let speed = 0.01;
 let x;
 let y;
 
@@ -21,6 +21,6 @@ function draw() {
   y = noise(timeY)* height;
   circle(x, y, 50);
 
-  timeX+= deltaTime;
-  timeY+= deltaTime;
+  timeX+= speed;
+  timeY+= speed;
 }
