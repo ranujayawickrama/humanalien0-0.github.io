@@ -8,11 +8,48 @@
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
 
+let bug;
+let bugWidth;
+let bugHeight;
+let timeX = 0;
+let timeY = 1000;
+let bugX;
+let bugY;
+
+//loading images
+function preload() {
+  bug = loadImage("firefly.png");
+}
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  bugWidth = bug.width * height * 0.0002 ;
+  bugHeight = bug.width * height * 0.0002 ;
+  bugX = width/2;
+  bugY = height/2;
 }
 
 function draw() {
   background(220);
+  displayImages();
+  bugX = noise(timeX)* width;
+  bugY = noise(timeY)* height;
+  timeX+= speed;
+  timeY+= speed;
 }
+
+function displayImages() {
+  image(bug, bugX, bugY, bugWidth, bugHeight);
+
+}
+
+function moveBug(){
+  timeX+= speed;
+  timeY+= speed;
+}
+
+function displayBug(){
+  bugX = noise(timeX)* width;
+  bugY = noise(timeY)* height;
+}
+
