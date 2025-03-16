@@ -8,9 +8,8 @@
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
 
-<<<<<<< HEAD
-let tim
-=======
+
+
 let bug;
 let bugWidth;
 let bugHeight;
@@ -18,13 +17,14 @@ let timeX = 0;
 let timeY = 1000;
 let bugX;
 let bugY;
+let bugSpeed = 0.015
+
 
 //loading images
 function preload() {
   bug = loadImage("firefly.png");
 }
 
->>>>>>> cf445ef3a49f18064ce1cb7e9cc0d8664f78486e
 function setup() {
   createCanvas(windowWidth, windowHeight);
   bugWidth = bug.width * height * 0.0002 ;
@@ -35,25 +35,18 @@ function setup() {
 
 function draw() {
   background(220);
-  displayImages();
-  bugX = noise(timeX)* width;
-  bugY = noise(timeY)* height;
-  timeX+= speed;
-  timeY+= speed;
+  bugMovement();
 }
 
 function displayImages() {
   image(bug, bugX, bugY, bugWidth, bugHeight);
-
 }
 
-function moveBug(){
-  timeX+= speed;
-  timeY+= speed;
-}
-
-function displayBug(){
+function bugMovement(){
   bugX = noise(timeX)* width;
   bugY = noise(timeY)* height;
-}
+  image(bug, bugX, bugY, bugWidth, bugHeight);
 
+  timeX+= bugSpeed;
+  timeY+= bugSpeed;
+}
