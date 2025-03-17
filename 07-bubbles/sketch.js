@@ -24,8 +24,6 @@ function mousePressed(){
   }
 }
 
-
-
 function draw() {
   background(220);
 
