@@ -17,7 +17,7 @@ let timeX = 0;
 let timeY = 1000;
 let bugX;
 let bugY;
-let bugSpeed = 0.015
+let bugSpeed = 0.015;
 
 
 //loading images
