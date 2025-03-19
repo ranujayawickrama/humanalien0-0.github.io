@@ -40,7 +40,7 @@ let volumeChangeAmount = 0.05; // sound
 
 let showIntro = true; //  intro screen
 let showOutro = false; //  if the outro screen is active
-let gameStartTime; // get the game start time
+let archeryGameStartTime; // get the game start time
 
 
 //loading images
@@ -56,7 +56,7 @@ function preload() {
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  gameStartTime = millis(); // Start the timer
+  archeryGameStartTime = millis(); // Start the timer
 
   //setting vaules for archer variables
   x = height / 20;
@@ -230,7 +230,7 @@ function keyPressed() {
   // if the intro screen is showing, make it dissappear when any key is pressed
   if (showIntro) {
     showIntro = false;
-    gameStartTime = millis(); // Reset timer when game starts
+    archeryGameStartTime = millis(); // Reset timer when game starts
   }
 
   // if the outro screen is active and r or R is pressed, restart the game
@@ -378,7 +378,7 @@ function displayOutroScreen() {
 
 //if 60 seconds have passed show the outro screen
 function checkGameTime() {
-  let elapsedTime = millis() - gameStartTime;
+  let elapsedTime = millis() - archeryGameStartTime;
   for (let i = 0; i < 1; i++) {
     if (elapsedTime >= 25000) {
       showOutro = true;
@@ -391,7 +391,7 @@ function restartGame() {
   showOutro = false;
 
   score = 0;
-  gameStartTime = millis(); // reset timer
+  archeryGameStartTime = millis(); // reset timer
 
   x = height / 20;
   y = height / 2.5;
