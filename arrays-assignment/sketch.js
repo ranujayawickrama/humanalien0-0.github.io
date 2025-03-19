@@ -1,12 +1,13 @@
-// two or three mini games
-// 1. click on the randomly moving ball and the colour change and add a score. add a game over screen and a time limit
-// 2. dinosaur game 
-// 3. maybe balll shooter
+// three mini games
+// 1. bug game - catch the bug from the net (make sure the bug is close to the loop of the net)
+// 2. archery game - use wasd or arrow keys to move the archer, space to shoot. try to shoot as much as arrows you can.
+// 3. dino game
 // Ranu Jayawickrama
 // March 10th
 //
 // Extra for Experts:
-// - describe what you did to take this project "above and beyond"
+// I added music
+// 
 
 
 //i didnt do the [ display intro screen, display outro screen, ]
@@ -69,6 +70,9 @@ let bugGameStartTime;
 let inWhatMode = "in intro"; //  intro screen
 let bugSpawnInterval; // Store the interval ID
 
+let ballGameStartTime;
+let theBalls = [];
+
 
 //loading images
 function preload() {
@@ -120,8 +124,8 @@ function setup() {
   targetDx = height / 100;
   targetDy = height / 100;
   textSize(height * 0.06); // Set text size for the scoreboard
-  // bgMusic.loop(); // Loop the background music
-  // bgMusic.setVolume(0.5); //setting volume
+  bgMusic.loop(); // Loop the background music
+  bgMusic.setVolume(0.5); //setting volume
 }
 
 function mousePressed(){
@@ -161,6 +165,9 @@ function draw() {
   else if (inWhatMode === "in outro") {
     displayOutroScreen();
   }
+  else if (inWhatMode === "in ball"){
+
+  }
 }
 
 function displayImages() {
@@ -183,12 +190,12 @@ function spawnBug(){
     timeX: random(0, 1000),  // Still needed for movement
     timeY: random(0, 1000),
     
-    bugSpeed: random(0.00004, 0.00008),
+    bugSpeed: random(0.004, 0.008),
     x: random(width),  // Start at random x
     y: random(height), // Start at random y
   };
   theBugs.push(someb);
-  console.log(theBugs.length);
+
 }
 function bugMovement(){
   for (let insect of theBugs){
@@ -237,13 +244,18 @@ function keyPressed() {
         spawnBug();
       }
       
-      bugSpawnInterval = setInterval(spawnBug, 1500); // Start bug spawning
+      bugSpawnInterval = setInterval(spawnBug, 1000); // Start bug spawning
     }
 
     if (key === 'i' || key === 'I') {
       inWhatMode = "in archery";
       archeryGameStartTime = millis(); // Reset archery game timer
       theBugs = []; // Clear bugs when switching to archery
+    }
+    if (key === 'o' || key === 'O') {
+      inWhatMode = "in ball";
+      ballGameStartTime = millis(); // Reset archery game timer
+      theBalls = []; // Clear bugs when switching to archery
     }
   }
   else if (inWhatMode === "in archery"){
@@ -465,7 +477,7 @@ function archeryDisplayScore() {
 function archeryCheckGameTime() {
   let elapsedTime = millis() - archeryGameStartTime;
   for (let i = 0; i < 1; i++) {
-    if (elapsedTime >= 10000) {
+    if (elapsedTime >= 30000) {
       inWhatMode = "in outro";
     }
   }
@@ -473,7 +485,7 @@ function archeryCheckGameTime() {
 
 function bugCheckGameTime() {
   let elapsedTime = millis() - bugGameStartTime;
-  if (elapsedTime >= 15000) { // 30 seconds
+  if (elapsedTime >= 30000) { // 30 seconds
     inWhatMode = "in outro";
   }
 }
@@ -531,6 +543,3 @@ function displayOutroScreen() {
   textSize(height * 0.04);
   text("Press 'R' to return to the main menu", width / 2, height * 0.45);
 }
-// function displayOutroScreen(){
-
-// }
