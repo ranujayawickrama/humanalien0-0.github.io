@@ -1,16 +1,12 @@
-// three mini games
+// two mini games
 // 1. bug game - catch the bug from the net (make sure the bug is close to the loop of the net)
 // 2. archery game - use wasd or arrow keys to move the archer, space to shoot. try to shoot as much as arrows you can.
-// 3. dino game
 // Ranu Jayawickrama
 // March 10th
 //
 // Extra for Experts:
 // I added music
 // 
-
-
-//i didnt do the [ display intro screen, display outro screen, ]
 
 
 // images
@@ -47,31 +43,32 @@ let targetHeight;
 
 //score and music variables
 let archeryScore = 0;
+let bugScore = 0;
+
 let bgMusic;
 let volumeChangeAmount = 0.05; // sound
 
-let archeryGameStartTime; // get the game start time
+// get the game start times
+let archeryGameStartTime; 
+let bugGameStartTime;
 
+//bug variables and arrays 
 let theBugs = [];
-
 let bugX;
 let bugY;
 let bug;
 let bugWidth;
 let bugHeight;
+let bugBg;
 
+let bugSpawnInterval; // Store the interval ID
+
+// net variables 
 let net;
 let netWidth;
 let netHeight;
-
-let bugBg;
-let bugScore = 0;
-let bugGameStartTime;
 let inWhatMode = "in intro"; //  intro screen
-let bugSpawnInterval; // Store the interval ID
 
-let ballGameStartTime;
-let theBalls = [];
 
 
 //loading images
@@ -97,11 +94,12 @@ function setup() {
   bugHeight = bug.width * height * 0.0002;
   netWidth = net.width * height * 0.0004;
   netHeight = net.height * height * 0.0005;
-  bugGameStartTime = millis();
-  noCursor();
+  bugGameStartTime = millis();// Start the timer
+  
 
   //the archery game
   archeryGameStartTime = millis(); // Start the timer
+
   //setting vaules for archer variables
   x = height / 20;
   y = height / 2.5;
@@ -109,6 +107,7 @@ function setup() {
   archerHeight = archer.height * height * 0.001;
   dx = height / 57;
   dy = height / 57;
+
   //setting up values for arrow variables
   arrowWidth = arrow.width * height * 0.000125;
   arrowHeight = arrow.height * height * 0.000125;
@@ -116,7 +115,8 @@ function setup() {
   arrowY = height / 2 + height * height * 0.0002; //angle the arrow to fit archer
   arrowDx = height / 57;
   arrowDy = height / 57;
-  //setting up values for arrow variables
+
+  //setting up values for target variables
   targetWidth = target.width * height * 0.00035;
   targetHeight = target.height * height * 0.00035;
   targetX = width / 1.5;
@@ -131,7 +131,7 @@ function setup() {
 function mousePressed(){
   for (let insect of theBugs){
     // if this bug is clicked on 
-    if (dist(mouseX, mouseY, insect.x , insect.y ) < 28){
+    if (dist(mouseX, mouseY, insect.x , insect.y ) < bugWidth/2){
       let index = theBugs.indexOf(insect);
       theBugs.splice(index, 1);
       bugScore++;
@@ -140,10 +140,15 @@ function mousePressed(){
 }
 
 function draw() {
+  // if the mode is intro, show the cursor and display intro screen
   if (inWhatMode === "in intro") {
+    cursor();
     displayIntroScreen();
   } 
+
+  // if the mode is bug, hide the cursor and display bug screen
   else if (inWhatMode === "in bug") {
+    noCursor();
     background(220);
     displayImages(); // Only calls displayImages() for the bug game
     displayVolume();
@@ -151,7 +156,10 @@ function draw() {
     bugDisplayScore();
     bugCheckGameTime();
   }
+
+  // if the mode is archery, hide the cursor and display archery screen
   else if (inWhatMode === "in archery") {
+    noCursor();
     displayImages(); // Only calls displayImages() for the archery game
     archerMovement();
     targetMovement();
@@ -162,22 +170,25 @@ function draw() {
     withinTarget();
     archeryCheckGameTime();
   }
-  else if (inWhatMode === "in outro") {
-    displayOutroScreen();
-  }
-  else if (inWhatMode === "in ball"){
 
+  // if the mode is outro, show the cursor and display outro screen
+  else if (inWhatMode === "in outro") {
+    cursor();
+    displayOutroScreen();
   }
 }
 
 function displayImages() {
+  // show the images of bug game if inside it
   if (inWhatMode === "in bug") {
     imageMode(CORNER);
     image(bugBg, 0, 0, windowWidth, windowHeight);
-    image(net, mouseX - 30, mouseY - 50, netWidth, netHeight);
+    image(net, mouseX - 30, mouseY - 50, netWidth, netHeight);// move the net by moving your cursor
   }
+
+  // show the images of archery game if inside it
   else if (inWhatMode === "in archery") {
-    imageMode(CORNER);  // Ensure correct mode
+    imageMode(CORNER); 
     image(myBackground, 0, 0, width, height);
     image(archer, x, y, archerWidth, archerHeight);
     image(arrow, arrowX, arrowY, arrowWidth, arrowHeight);
@@ -187,10 +198,11 @@ function displayImages() {
 
 function spawnBug(){
   let someb = {
-    timeX: random(0, 1000),  // Still needed for movement
+    timeX: random(0, 1000),  
     timeY: random(0, 1000),
     
     bugSpeed: random(0.004, 0.008),
+
     x: random(width),  // Start at random x
     y: random(height), // Start at random y
   };
@@ -251,11 +263,6 @@ function keyPressed() {
       inWhatMode = "in archery";
       archeryGameStartTime = millis(); // Reset archery game timer
       theBugs = []; // Clear bugs when switching to archery
-    }
-    if (key === 'o' || key === 'O') {
-      inWhatMode = "in ball";
-      ballGameStartTime = millis(); // Reset archery game timer
-      theBalls = []; // Clear bugs when switching to archery
     }
   }
   else if (inWhatMode === "in archery"){
@@ -542,4 +549,8 @@ function displayOutroScreen() {
 
   textSize(height * 0.04);
   text("Press 'R' to return to the main menu", width / 2, height * 0.45);
+}
+
+function obstacleMovement(){
+
 }
