@@ -45,7 +45,7 @@ let targetHeight;
 let archeryScore = 0;
 let bugScore = 0;
 
-let bgMusic;
+let introMusic;
 let volumeChangeAmount = 0.05; // sound
 
 // get the game start times
@@ -68,6 +68,12 @@ let net;
 let netWidth;
 let netHeight;
 let inWhatMode = "in intro"; //  intro screen
+let cheerPlayed = false;
+let booingPlayed = false;
+let whatScore;
+let randomKey; // Store the randomly chosen key
+let possibleKeys = "cdefghijklmnopqrstuvwxyz"; // Define keys to choose from
+
 
 
 
@@ -82,12 +88,21 @@ function preload() {
   myBackground = loadImage("background.jpg");
 
   //loading music
-  bgMusic = loadSound("gameSound.mp3");
+  introMusic = loadSound("introS.mp3");   // Intro screen music
+  archeryMusic = loadSound("archeryS.mp3"); // Archery game music
+  bugMusic = loadSound("bugS.mp3");       // Bug catching game music
   
+
+  bowSound = loadSound("bowRelease.mp3");   // Bow shooting sound
+  bugCatchSound = loadSound("pop.mp3");     // Bug catching sound
+  cheerSound = loadSound("winnerS.mp3");      // Cheer sound for high score
+  booingSound = loadSound("looserS.mp3"); 
+  memeSound = loadSound("araAra.mp3");
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  pickRandomKey(); // Pick the first random key
 
   //the bug game 
   bugWidth = bug.width * height * 0.0002;
@@ -124,18 +139,31 @@ function setup() {
   targetDx = height / 100;
   targetDy = height / 100;
   textSize(height * 0.06); // Set text size for the scoreboard
-  bgMusic.loop(); // Loop the background music
-  bgMusic.setVolume(0.5); //setting volume
+
+  // Play intro music at the start
+  introMusic.loop();
+  introMusic.setVolume(0.5);
+
+  // Set volumes for other tracks but don't play them yet
+  archeryMusic.setVolume(0.5);
+  bugMusic.setVolume(0.5);
+
+  // sound effects 
+  bowSound.setVolume(1.0);
+  bugCatchSound.setVolume(0.8);
+  cheerSound.setVolume(6.0);
+  memeSound.setVolume(0.1);
 }
 
-function mousePressed(){
-  for (let insect of theBugs){
-    // if this bug is clicked on 
-    if (dist(mouseX, mouseY, insect.x , insect.y ) < bugWidth/2){
+function mousePressed() {
+  for (let insect of theBugs) {
+    // if the bug is clicked on
+    if (dist(mouseX, mouseY, insect.x, insect.y) < bugWidth / 2) {
       let index = theBugs.indexOf(insect);
       theBugs.splice(index, 1);
       bugScore++;
-    };
+      bugCatchSound.play(); // Play pop sound when catching a bug
+    }
   }
 }
 
@@ -144,6 +172,7 @@ function draw() {
   if (inWhatMode === "in intro") {
     cursor();
     displayIntroScreen();
+    displayVolume();
   } 
 
   // if the mode is bug, hide the cursor and display bug screen
@@ -209,6 +238,7 @@ function spawnBug(){
   theBugs.push(someb);
 
 }
+
 function bugMovement(){
   for (let insect of theBugs){
 
@@ -224,6 +254,7 @@ function bugMovement(){
     insect.timeY += insect.bugSpeed;
   }
 }
+
 function bugDisplayScore() {
   //setting up varibles so that the background for the score  will be drawn in any winodw size
   let rectWidth = width * 0.2;
@@ -242,10 +273,20 @@ function bugDisplayScore() {
 
 function keyPressed() {
   if (inWhatMode === "in intro") {
+    if (key.toLowerCase() === randomKey) {
+      memeSound.play(); // Play the sound
+      pickRandomKey(); // Pick a new random key after playing
+    }
     if (key === 'b' || key === 'B') {
       inWhatMode = "in bug";
+      whatScore = "bug score"
       bugGameStartTime = millis(); // Reset bug game timer
       theBugs = []; // Reset bugs
+
+      // Stop intro music, start bug music
+      introMusic.stop();
+      archeryMusic.stop();
+      bugMusic.loop();
 
       // Stop any previous bug spawn interval before starting a new one
       if (bugSpawnInterval) {
@@ -259,31 +300,47 @@ function keyPressed() {
       bugSpawnInterval = setInterval(spawnBug, 1000); // Start bug spawning
     }
 
-    if (key === 'i' || key === 'I') {
+    if (key === 'a' || key === 'A') {
       inWhatMode = "in archery";
       archeryGameStartTime = millis(); // Reset archery game timer
       theBugs = []; // Clear bugs when switching to archery
+      whatScore = "archery score"
+
+      introMusic.stop();
+      bugMusic.stop();
+      archeryMusic.loop();
     }
   }
-  else if (inWhatMode === "in archery"){
-    // arrow is shot when pressed space bar and when it is in archers hand
-    if (keyCode === 32 && !moving) {
-      moving = true;
-      arrowDx = height * 0.0375; //arrow speed
-      arrowDy = 0;
-      arrowState = "outside target";
-    }
+ if (inWhatMode === "in archery" && keyCode === 32 && !moving) {
+    bowSound.play(); // Play bowstring release sound
+    moving = true;
+    arrowDx = height * 0.0375;
+    arrowDy = 0;
+    arrowState = "outside target";
   }
   else if (inWhatMode === "in outro" && (key === "r" || key === "R")) {
     goHome(); // Return to the intro screen
   }
   //if v or V pressed, pause the music if its playing and play the music if its paused
   if (key === "v" || key === "V") {
-    if (bgMusic.isPlaying()) {
-      bgMusic.pause();
-    }
-    else {
-      bgMusic.loop();
+    if (inWhatMode === "in intro") {
+      if (introMusic.isPlaying()) {
+        introMusic.pause();
+      } else {
+        introMusic.loop();
+      }
+    } else if (inWhatMode === "in bug") {
+      if (bugMusic.isPlaying()) {
+        bugMusic.pause();
+      } else {
+        bugMusic.loop();
+      }
+    } else if (inWhatMode === "in archery") {
+      if (archeryMusic.isPlaying()) {
+        archeryMusic.pause();
+      } else {
+        archeryMusic.loop();
+      }
     }
   }
 }
@@ -424,41 +481,64 @@ function withinTarget() {
 
 //volume control
 function mouseWheel(event) {
-  if (event.delta > 0) {
+  let currentMusic;
 
-    // Scroll down to decrease volume
-    bgMusic.setVolume(max(0, bgMusic.getVolume() - volumeChangeAmount));
+  if (inWhatMode === "in intro") {
+    currentMusic = introMusic;
+  } else if (inWhatMode === "in bug") {
+    currentMusic = bugMusic;
+  } else if (inWhatMode === "in archery") {
+    currentMusic = archeryMusic;
   }
-  else {
 
-    // Scroll up to increase volume
-    bgMusic.setVolume(min(1, bgMusic.getVolume() + volumeChangeAmount));
+  if (currentMusic) {
+    if (event.delta > 0) {
+      // Scroll down to decrease volume
+      currentMusic.setVolume(max(0, currentMusic.getVolume() - volumeChangeAmount));
+    } else {
+      // Scroll up to increase volume
+      currentMusic.setVolume(min(1, currentMusic.getVolume() + volumeChangeAmount));
+    }
   }
-  return false; // stop the default action of scrolling (like page scroll)
+
+  return false; // Stop the default scrolling behavior
 }
 
 // Displays the volume level on the screen for any winodw size
 function displayVolume() {
+  let currentMusic;
+  let volumeText = "Volume: ";
 
-  //setting up varibles so that the background (rectangle) for the volume will be drawn in any winodw size
+  if (inWhatMode === "in bug") {
+    currentMusic = bugMusic;
+  } else if (inWhatMode === "in archery") {
+    currentMusic = archeryMusic;
+  } else {
+    currentMusic = introMusic;
+  }
+
+  // If the music is paused, show volume as 0
+  if (currentMusic && !currentMusic.isPlaying()) {
+    volumeText += "0";
+  } else {
+    volumeText += Math.round(currentMusic.getVolume() * 100);
+  }
+
+  // Setting up variables for the volume display box
   let rectWidth = width * 0.12;
   let rectHeight = height * 0.05;
   let rectX = width - rectWidth - width * 0.02;
   let rectY = height * 0.02;
 
-  // drawing rectangle
+  // Drawing rectangle
   fill("lightgreen");
   rect(rectX, rectY, rectWidth, rectHeight);
 
-  //text for volume
+  // Display volume text
   fill(0);
   textSize(width / 55);
   textAlign(CENTER, CENTER);
-  text(
-    "Volume: " + Math.round(bgMusic.getVolume() * 100),
-    rectX + rectWidth / 2,
-    rectY + rectHeight / 2
-  );
+  text(volumeText, rectX + rectWidth / 2, rectY + rectHeight / 2);
 }
 
 function archeryDisplayScore() {
@@ -500,25 +580,19 @@ function bugCheckGameTime() {
 // resets the game when restarting after pressing r
 function goHome() {
   inWhatMode = "in intro";
-
-  archeryScore = 0;
-  archeryGameStartTime = millis(); // Reset archery timer
-
-  bugScore = 0;
-  bugGameStartTime = millis(); // Reset bug timer
-
-  theBugs = []; // Clear bugs when going back to intro
-
-  x = height / 20;
-  y = height / 2.5;
-
-  arrowX = width / 2 + width * height * 0.000125;
-  arrowY = height / 2 + height * height * 0.0002;
+  cheerPlayed = false;
+  booingPlayed = false;
   
-  targetX = width / 1.5;
-  targetY = height / 2;
-
-  myBackground = loadImage("background.jpg"); // Ensure background reloads properly
+  // Stop all game music and restart intro music
+  bugMusic.stop();
+  archeryMusic.stop();
+  introMusic.loop();
+  
+  archeryScore = 0;
+  bugScore = 0;
+  archeryGameStartTime = millis();
+  bugGameStartTime = millis();
+  theBugs = [];
 }
 
 function displayIntroScreen() {
@@ -526,7 +600,7 @@ function displayIntroScreen() {
   textAlign(CENTER, CENTER);
   textSize(height * 0.05);
   fill(0);
-  text("Welcome to the Game!", width / 2, height * 0.2);
+  text("Welcome to the Mini Games!", width / 2, height * 0.2);
 
   textSize(height * 0.04);
   text("Press 'B' to play the Bug Catching game", width / 2, height * 0.35);
@@ -534,23 +608,53 @@ function displayIntroScreen() {
   
   textSize(height * 0.035);
   text("Bug Catching Game:", width / 2, height * 0.5);
-  text("Click on the moving bugs to catch them and increase your score!", width / 2, height * 0.55);
+  text("move the net with your mouse and click on the bugs as much as you can for 30 seconds", width / 2, height * 0.55);
+  text("(make sure the bug is close to the net loop and you are not moving while clicking) ", width / 2, height * 0.6);
   
-  text("Archery Game:", width / 2, height * 0.65);
-  text("Use W/A/S/D or arrow keys to move.", width / 2, height * 0.7);
-  text("Press SPACE to shoot an arrow at the moving target.", width / 2, height * 0.75);
+  
+  text("Archery Game:", width / 2, height * 0.7);
+  text("Use W/A/S/D or arrow keys to move", width / 2, height * 0.75);
+  text("Press SPACE to shoot an arrow at the moving target as much as you can for 30 seconds", width / 2, height * 0.8);
 }
 function displayOutroScreen() {
-  background(220);
+  background(0);
   textAlign(CENTER, CENTER);
   textSize(height * 0.06);
-  fill(0);
+  fill(220);
   text("Game Over!", width / 2, height * 0.3);
 
   textSize(height * 0.04);
   text("Press 'R' to return to the main menu", width / 2, height * 0.45);
+
+  let finalScore = 0;
+
+  // Determine which game was played and display the correct score
+  if (whatScore === "bug score") {
+    finalScore = bugScore;
+  } else if (whatScore === "archery score") {
+    finalScore = archeryScore;
+  }
+
+  // Display only the relevant score
+  textSize(height * 0.05);
+  text(`Score: ${finalScore}`, width / 2, height * 0.4);
+
+  // Play cheer sound if the player reaches the score threshold
+  // Play cheer sound if the player gets 10+ points, but only once
+  if ((archeryScore >= 15 || bugScore >= 10) && !cheerPlayed) {
+    cheerSound.play();
+    cheerPlayed = true;
+  }
+
+  // Play booing sound if the player gets less than 10 points, but only once
+  if ((archeryScore < 15 && bugScore < 10) && !booingPlayed) {
+    booingSound.play();
+    booingPlayed = true;
+  }
 }
 
-function obstacleMovement(){
-
+function pickRandomKey() {
+  randomKey = possibleKeys.charAt(floor(random(possibleKeys.length)));
+  console.log("Press '" + randomKey + "' to play the meme sound!"); // Debugging message
 }
+
