@@ -5,94 +5,100 @@
 // March 10th
 //
 // Extra for Experts:
-// I added music
+// I added music and sound effects
 // 
 
+let myImages = {
+  archer: null,
+  target: null,
+  arrow: null,
+  myBackground: null,
+};
 
-// images
-let archer;
-let target;
-let arrow;
-let myBackground;
+let myArcher = {
+  x: null,
+  y: null,
+  dx: null,
+  dy: null,
+  archerWidth: null,
+  archerHeight: null,
+};
 
-// variables of archer
-let x;
-let y;
-let dx;
-let dy;
-let archerWidth;
-let archerHeight;
+let myArrow = {
+  arrowX: null,
+  arrowY: null,
+  arrowDx: null,
+  arrowDy: null,
+  arrowWidth: null,
+  arrowHeight: null,
+  moving: false,
+  arrowState: "outside target",
+  
+};
 
-// variables of archer arrow
-let arrowX;
-let arrowY;
-let arrowDx;
-let arrowDy;
-let arrowWidth;
-let arrowHeight;
-let moving = false; // Track movement
-let arrowState = "outside target"; //state of arrow
+let myTarget = {
+  targetX: null,
+  targetY: null,
+  targetDx: null,
+  targetDy: null,
+  targetWidth: null,
+  targetHeight: null,
+};
 
-//variables of target
-let targetX;
-let targetY;
-let targetDx;
-let targetDy;
-let targetWidth;
-let targetHeight;
+let myScores = {
+  archeryScore: 0,
+  bugScore: 0,
+  whatScore: null,
+};
 
-//score and music variables
-let archeryScore = 0;
-let bugScore = 0;
+let myGameStartTimes = {
+  archeryGameStartTime: null,
+  bugGameStartTime: null,
+};
 
-let introMusic;
-let volumeChangeAmount = 0.05; // sound
+let myBug = {
+  bugX: null,
+  bugY: null,
+  bug: null,
+  bugWidth: null,
+  bugHeight: null,
+  bugBg: null,
+  bugSpawnInterval: null,
+};
 
-// get the game start times
-let archeryGameStartTime; 
-let bugGameStartTime;
-
-//bug variables and arrays 
 let theBugs = [];
-let bugX;
-let bugY;
-let bug;
-let bugWidth;
-let bugHeight;
-let bugBg;
 
-let bugSpawnInterval; // Store the interval ID
+let myNet = {
+  net: null,
+  netWidth: null,
+  netHeight: null,
+};
 
-// net variables 
-let net;
-let netWidth;
-let netHeight;
 let inWhatMode = "in intro"; //  intro screen
 let cheerPlayed = false;
 let booingPlayed = false;
-let whatScore;
+
 let randomKey; // Store the randomly chosen key
 let possibleKeys = "cdefghijklmnopqrstuvwxyz"; // Define keys to choose from
-
+let volumeChangeAmount = 0.05; // sound
 
 
 
 //loading images
 function preload() {
-  bug = loadImage("firefly.png");
-  bugBg = loadImage("bugBg.jpg");
-  net = loadImage("net.png");
-  archer = loadImage("archer2.png");
-  target = loadImage("target2.png");
-  arrow = loadImage("arrow.png");
-  myBackground = loadImage("background.jpg");
+  myBug.bug = loadImage("firefly.png");
+  myBug.bugBg = loadImage("bugBg.jpg");
+  myNet.net = loadImage("net.png");
+  myImages.archer = loadImage("archer2.png");
+  myImages.target = loadImage("target2.png");
+  myImages.arrow = loadImage("arrow.png");
+  myImages.myBackground = loadImage("background.jpg");
 
   //loading music
   introMusic = loadSound("introS.mp3");   // Intro screen music
   archeryMusic = loadSound("archeryS.mp3"); // Archery game music
   bugMusic = loadSound("bugS.mp3");       // Bug catching game music
   
-
   bowSound = loadSound("bowRelease.mp3");   // Bow shooting sound
   bugCatchSound = loadSound("pop.mp3");     // Bug catching sound
   cheerSound = loadSound("winnerS.mp3");      // Cheer sound for high score
@@ -105,39 +111,38 @@ function setup() {
   pickRandomKey(); // Pick the first random key
 
   //the bug game 
-  bugWidth = bug.width * height * 0.0002;
-  bugHeight = bug.width * height * 0.0002;
-  netWidth = net.width * height * 0.0004;
-  netHeight = net.height * height * 0.0005;
-  bugGameStartTime = millis();// Start the timer
+  myBug.bugWidth = myBug.bug.width * height * 0.0002;
+  myBug.bugHeight = myBug.bug.width * height * 0.0002;
+  myNet.netWidth = myNet.net.width * height * 0.0004;
+  myNet.netHeight = myNet.net.height * height * 0.0005;
+  myGameStartTimes.bugGameStartTime = millis();// Start the timer
   
-
   //the archery game
-  archeryGameStartTime = millis(); // Start the timer
+  myGameStartTimes.archeryGameStartTime = millis(); // Start the timer
 
   //setting vaules for archer variables
-  x = height / 20;
-  y = height / 2.5;
-  archerWidth = archer.width * height * 0.001;
-  archerHeight = archer.height * height * 0.001;
-  dx = height / 57;
-  dy = height / 57;
+  myArcher.x = height / 20;
+  myArcher.y = height / 2.5;
+  myArcher.archerWidth = myImages.archer.width * height * 0.001;
+  myArcher.archerHeight = myImages.archer.height * height * 0.001;
+  myArcher.dx = height / 57;
+  myArcher.dy = height / 57;
 
   //setting up values for arrow variables
-  arrowWidth = arrow.width * height * 0.000125;
-  arrowHeight = arrow.height * height * 0.000125;
-  arrowX = width / 2 + width * height * 0.000125; // angle the arrow to fit archer
-  arrowY = height / 2 + height * height * 0.0002; //angle the arrow to fit archer
-  arrowDx = height / 57;
-  arrowDy = height / 57;
+  myArrow.arrowWidth = myImages.arrow.width * height * 0.000125;
+  myArrow.arrowHeight = myImages.arrow.height * height * 0.000125;
+  myArrow.arrowX = width / 2 + width * height * 0.000125; // angle the arrow to fit archer
+  myArrow.arrowY = height / 2 + height * height * 0.0002; //angle the arrow to fit archer
+  myArrow.arrowDx = height / 57;
+  myArrow.arrowDy = height / 57;
 
   //setting up values for target variables
-  targetWidth = target.width * height * 0.00035;
-  targetHeight = target.height * height * 0.00035;
-  targetX = width / 1.5;
-  targetY = height / 2;
-  targetDx = height / 100;
-  targetDy = height / 100;
+  myTarget.targetWidth = myImages.target.width * height * 0.00035;
+  myTarget.targetHeight = myImages.target.height * height * 0.00035;
+  myTarget.targetX = width / 1.5;
+  myTarget.targetY = height / 2;
+  myTarget.targetDx = height / 100;
+  myTarget.targetDy = height / 100;
   textSize(height * 0.06); // Set text size for the scoreboard
 
   // Play intro music at the start
@@ -158,10 +163,10 @@ function setup() {
 function mousePressed() {
   for (let insect of theBugs) {
     // if the bug is clicked on
-    if (dist(mouseX, mouseY, insect.x, insect.y) < bugWidth / 2) {
+    if (dist(mouseX, mouseY, insect.x, insect.y) < myBug.bugWidth / 2) {
       let index = theBugs.indexOf(insect);
       theBugs.splice(index, 1);
-      bugScore++;
+      myScores.bugScore++;
       bugCatchSound.play(); // Play pop sound when catching a bug
     }
   }
@@ -211,17 +216,17 @@ function displayImages() {
   // show the images of bug game if inside it
   if (inWhatMode === "in bug") {
     imageMode(CORNER);
-    image(bugBg, 0, 0, windowWidth, windowHeight);
-    image(net, mouseX - 30, mouseY - 50, netWidth, netHeight);// move the net by moving your cursor
+    image(myBug.bugBg, 0, 0, windowWidth, windowHeight);
+    image(myNet.net, mouseX - 30, mouseY - 50, myNet.netWidth, myNet.netHeight);// move the net by moving your cursor
   }
 
   // show the images of archery game if inside it
   else if (inWhatMode === "in archery") {
     imageMode(CORNER); 
-    image(myBackground, 0, 0, width, height);
-    image(archer, x, y, archerWidth, archerHeight);
-    image(arrow, arrowX, arrowY, arrowWidth, arrowHeight);
-    image(target, targetX, targetY, targetWidth, targetHeight);
+    image(myImages.myBackground, 0, 0, width, height);
+    image(myImages.archer, myArcher.x, myArcher.y, myArcher.archerWidth, myArcher.archerHeight);
+    image(myImages.arrow, myArrow.arrowX, myArrow.arrowY, myArrow.arrowWidth, myArrow.arrowHeight);
+    image(myImages.target, myTarget.targetX, myTarget.targetY, myTarget.targetWidth, myTarget.targetHeight);
   }
 }
 
@@ -246,7 +251,7 @@ function bugMovement(){
     insect.y = noise(insect.timeY) * height;
     
     imageMode(CENTER);
-    image(bug, insect.x, insect.y, bugWidth, bugHeight);
+    image(myBug.bug, insect.x, insect.y, myBug.bugWidth, myBug.bugHeight);
     
 
     // move bubble
@@ -268,7 +273,7 @@ function bugDisplayScore() {
   fill(0);
   textSize(width / 55);
   textAlign(CENTER, CENTER);
-  text("Score: " + bugScore, rectX + rectWidth / 2, rectY + rectHeight / 2); // Display score text
+  text("Score: " + myScores.bugScore, rectX + rectWidth / 2, rectY + rectHeight / 2); // Display score text
 } 
 
 function keyPressed() {
@@ -279,8 +284,8 @@ function keyPressed() {
     }
     if (key === 'b' || key === 'B') {
       inWhatMode = "in bug";
-      whatScore = "bug score"
-      bugGameStartTime = millis(); // Reset bug game timer
+      myScores.whatScore = "bug score";
+      myGameStartTimes.bugGameStartTime = millis(); // Reset bug game timer
       theBugs = []; // Reset bugs
 
       // Stop intro music, start bug music
@@ -289,34 +294,34 @@ function keyPressed() {
       bugMusic.loop();
 
       // Stop any previous bug spawn interval before starting a new one
-      if (bugSpawnInterval) {
-        clearInterval(bugSpawnInterval);
+      if (myBug.bugSpawnInterval) {
+        clearInterval(myBug.bugSpawnInterval);
       }
 
       for (let i = 0; i < 3; i++) {
         spawnBug();
       }
       
-      bugSpawnInterval = setInterval(spawnBug, 1000); // Start bug spawning
+      myBug.bugSpawnInterval = setInterval(spawnBug, 1000); // Start bug spawning
     }
 
     if (key === 'a' || key === 'A') {
       inWhatMode = "in archery";
-      archeryGameStartTime = millis(); // Reset archery game timer
+      myGameStartTimes.archeryGameStartTime = millis(); // Reset archery game timer
       theBugs = []; // Clear bugs when switching to archery
-      whatScore = "archery score"
+      myScores.whatScore = "archery score";
 
       introMusic.stop();
       bugMusic.stop();
       archeryMusic.loop();
     }
   }
- if (inWhatMode === "in archery" && keyCode === 32 && !moving) {
+  if (inWhatMode === "in archery" && keyCode === 32 && !myArrow.moving) {
     bowSound.play(); // Play bowstring release sound
-    moving = true;
-    arrowDx = height * 0.0375;
-    arrowDy = 0;
-    arrowState = "outside target";
+    myArrow.moving = true;
+    myArrow.arrowDx = height * 0.0375;
+    myArrow.arrowDy = 0;
+    myArrow.arrowState = "outside target";
   }
   else if (inWhatMode === "in outro" && (key === "r" || key === "R")) {
     goHome(); // Return to the intro screen
@@ -326,19 +331,24 @@ function keyPressed() {
     if (inWhatMode === "in intro") {
       if (introMusic.isPlaying()) {
         introMusic.pause();
-      } else {
+      }
+      else {
         introMusic.loop();
       }
-    } else if (inWhatMode === "in bug") {
+    }
+    else if (inWhatMode === "in bug") {
       if (bugMusic.isPlaying()) {
         bugMusic.pause();
-      } else {
+      }
+      else {
         bugMusic.loop();
       }
-    } else if (inWhatMode === "in archery") {
+    }
+    else if (inWhatMode === "in archery") {
       if (archeryMusic.isPlaying()) {
         archeryMusic.pause();
-      } else {
+      }
+      else {
         archeryMusic.loop();
       }
     }
@@ -350,48 +360,48 @@ function archerMovement() {
 
   // a or left arrow key moves archer left within the screen
   if (keyIsDown(65) || keyIsDown(LEFT_ARROW)) {
-    if (x > 0) {
-      x -= dx;
+    if (myArcher.x > 0) {
+      myArcher.x -= myArcher.dx;
 
       //if the arrow is in hand move it left with archer
-      if (!moving) {
-        arrowX -= arrowDx;
+      if (!myArrow.moving) {
+        myArrow.arrowX -= myArrow.arrowDx;
       }
     }
   }
 
   // d or right arrow key moves archer right within the screen
   if (keyIsDown(68) || keyIsDown(RIGHT_ARROW)) {
-    if (x < width / 2 - archerWidth / 2) {
-      x += dx;
+    if (myArcher.x < width / 2 - myArcher.archerWidth / 2) {
+      myArcher.x += myArcher.dx;
 
       //if the arrow is in hand move it right with archer
-      if (!moving) {
-        arrowX += arrowDx;
+      if (!myArrow.moving) {
+        myArrow.arrowX += myArrow.arrowDx;
       }
     }
   }
 
   // w or up arrow key moves the archer up within the screen
   if (keyIsDown(87) || keyIsDown(UP_ARROW)) {
-    if (y > height / 80) {
-      y -= dy;
+    if (myArcher.y > height / 80) {
+      myArcher.y -= myArcher.dy;
 
       //if the arrow is in hand move it up with archer
-      if (!moving) {
-        arrowY -= arrowDy;
+      if (!myArrow.moving) {
+        myArrow.arrowY -= myArrow.arrowDy;
       }
     }
   }
 
   // s or down arrow key moves archer down within the screen
   if (keyIsDown(83) || keyIsDown(DOWN_ARROW)) {
-    if (y < height - archerHeight + height / 25) {
-      y += dy;
+    if (myArcher.y < height - myArcher.archerHeight + height / 25) {
+      myArcher.y += myArcher.dy;
       
       //if the arrow is in hand move it down with archer
-      if (!moving) {
-        arrowY += arrowDy;
+      if (!myArrow.moving) {
+        myArrow.arrowY += myArrow.arrowDy;
       }
     }
   }
@@ -400,20 +410,20 @@ function archerMovement() {
 // movement of the target
 function targetMovement() {
   //move target
-  targetX += targetDx;
-  targetY += targetDy;
+  myTarget.targetX += myTarget.targetDx;
+  myTarget.targetY += myTarget.targetDy;
 }
 
 function bounceIfNeeded() {
 
   // Bounce horizontally when tagert hits the boundary
-  if (targetX < width / 1.5 || targetX > width - targetWidth / 1.5) {
-    targetDx *= -1;
+  if (myTarget.targetX < width / 1.5 || myTarget.targetX > width - myTarget.targetWidth / 1.5) {
+    myTarget.targetDx *= -1;
   }
 
   // Bounce vertically when tagert hits the boundary
-  if (targetY <= 0 || targetY >= height - targetHeight) {
-    targetDy *= -1;
+  if (myTarget.targetY <= 0 || myTarget.targetY >= height - myTarget.targetHeight) {
+    myTarget.targetDy *= -1;
   }
 }
 
@@ -421,61 +431,61 @@ function bounceIfNeeded() {
 function isArrowMoving() {
 
   // if the archer shot the arrow
-  if (moving) {
+  if (myArrow.moving) {
 
     //if it has not hit anything
     if (
-      arrowX + arrowWidth - height * 0.0125 <= width &&
-      arrowState === "outside target"
+      myArrow.arrowX + myArrow.arrowWidth - height * 0.0125 <= width &&
+      myArrow.arrowState === "outside target"
     ) {
-      arrowX += arrowDx;
+      myArrow.arrowX += myArrow.arrowDx;
     }
 
     // if it hits the target make reappear at archers hand
-    else if (arrowState === "inside target") {
-      arrowState = "outside target";
-      moving = false;
-      archeryScore++;
+    else if (myArrow.arrowState === "inside target") {
+      myArrow.arrowState = "outside target";
+      myArrow.moving = false;
+      myScores.archeryScore++;
     }
 
     // if it hit the target make reappear at archers hand
     else {
-      moving = false;
+      myArrow.moving = false;
     }
   }
 
   //if not moving, make the arrow reappear at archers hand
-  else if (!moving) {
-    arrowX = x + width * 0.05;
-    arrowY = y + height * 0.08;
+  else if (!myArrow.moving) {
+    myArrow.arrowX = myArcher.x + width * 0.05;
+    myArrow.arrowY = myArcher.y + height * 0.08;
   }
 }
 
 // check if the arrow hit the target
 function withinTarget() {
   if (
-    arrowX + arrowWidth >= targetX + height * 0.1 &&
-    arrowY > targetY - height * 0.035 &&
-    arrowY < targetY + targetHeight - height * 0.021
+    myArrow.arrowX + myArrow.arrowWidth >= myTarget.targetX + height * 0.1 &&
+    myArrow.arrowY > myTarget.targetY - height * 0.035 &&
+    myArrow.arrowY < myTarget.targetY + myTarget.targetHeight - height * 0.021
   ) {
-    if (arrowState === "outside target") {
+    if (myArrow.arrowState === "outside target") {
 
       // Change target speed after hitting
-      targetDx = random(height / 90, height / 70);
-      targetDy = random(height / 90, height / 70);
+      myTarget.targetDx = random(height / 90, height / 70);
+      myTarget.targetDy = random(height / 90, height / 70);
 
       // stop target from getting stuck on the left side
-      if (targetX + height * 0.1 <= width / 1.5) {
-        targetX = width / 1.4;
+      if (myTarget.targetX + height * 0.1 <= width / 1.5) {
+        myTarget.targetX = width / 1.4;
       }
 
       // Prevent target from getting stuck on the right side
-      if (targetX + targetWidth >= width) {
-        targetX = width - targetWidth - height / 40;
+      if (myTarget.targetX + myTarget.targetWidth >= width) {
+        myTarget.targetX = width - myTarget.targetWidth - height / 40;
       }
     }
 
-    arrowState = "inside target"; //change the state of the arrow
+    myArrow.arrowState = "inside target"; //change the state of the arrow
   }
 }
 
@@ -485,9 +495,11 @@ function mouseWheel(event) {
 
   if (inWhatMode === "in intro") {
     currentMusic = introMusic;
-  } else if (inWhatMode === "in bug") {
+  }
+  else if (inWhatMode === "in bug") {
     currentMusic = bugMusic;
-  } else if (inWhatMode === "in archery") {
+  }
+  else if (inWhatMode === "in archery") {
     currentMusic = archeryMusic;
   }
 
@@ -495,7 +507,8 @@ function mouseWheel(event) {
     if (event.delta > 0) {
       // Scroll down to decrease volume
       currentMusic.setVolume(max(0, currentMusic.getVolume() - volumeChangeAmount));
-    } else {
+    }
+    else {
       // Scroll up to increase volume
       currentMusic.setVolume(min(1, currentMusic.getVolume() + volumeChangeAmount));
     }
@@ -511,16 +524,19 @@ function displayVolume() {
 
   if (inWhatMode === "in bug") {
     currentMusic = bugMusic;
-  } else if (inWhatMode === "in archery") {
+  }
+  else if (inWhatMode === "in archery") {
     currentMusic = archeryMusic;
-  } else {
+  }
+  else {
     currentMusic = introMusic;
   }
 
   // If the music is paused, show volume as 0
   if (currentMusic && !currentMusic.isPlaying()) {
     volumeText += "0";
-  } else {
+  }
+  else {
     volumeText += Math.round(currentMusic.getVolume() * 100);
   }
 
@@ -557,12 +573,12 @@ function archeryDisplayScore() {
   fill(0);
   textSize(width / 55);
   textAlign(CENTER, CENTER);
-  text("Score: " + archeryScore, rectX + rectWidth / 2, rectY + rectHeight / 2); // Display score text
+  text("Score: " + myScores.archeryScore, rectX + rectWidth / 2, rectY + rectHeight / 2); // Display score text
 }
 
 //if 60 seconds have passed show the outro screen
 function archeryCheckGameTime() {
-  let elapsedTime = millis() - archeryGameStartTime;
+  let elapsedTime = millis() - myGameStartTimes.archeryGameStartTime;
   for (let i = 0; i < 1; i++) {
     if (elapsedTime >= 30000) {
       inWhatMode = "in outro";
@@ -571,7 +587,7 @@ function archeryCheckGameTime() {
 }
 
 function bugCheckGameTime() {
-  let elapsedTime = millis() - bugGameStartTime;
+  let elapsedTime = millis() - myGameStartTimes.bugGameStartTime;
   if (elapsedTime >= 30000) { // 30 seconds
     inWhatMode = "in outro";
   }
@@ -588,10 +604,10 @@ function goHome() {
   archeryMusic.stop();
   introMusic.loop();
   
-  archeryScore = 0;
-  bugScore = 0;
-  archeryGameStartTime = millis();
-  bugGameStartTime = millis();
+  myScores.archeryScore = 0;
+  myScores.bugScore = 0;
+  myGameStartTimes.archeryGameStartTime = millis();
+  myGameStartTimes.bugGameStartTime = millis();
   theBugs = [];
 }
 
@@ -604,7 +620,7 @@ function displayIntroScreen() {
 
   textSize(height * 0.04);
   text("Press 'B' to play the Bug Catching game", width / 2, height * 0.35);
-  text("Press 'I' to play the Archery game", width / 2, height * 0.4);
+  text("Press 'A' to play the Archery game", width / 2, height * 0.4);
   
   textSize(height * 0.035);
   text("Bug Catching Game:", width / 2, height * 0.5);
@@ -629,10 +645,11 @@ function displayOutroScreen() {
   let finalScore = 0;
 
   // Determine which game was played and display the correct score
-  if (whatScore === "bug score") {
-    finalScore = bugScore;
-  } else if (whatScore === "archery score") {
-    finalScore = archeryScore;
+  if (myScores.whatScore === "bug score") {
+    finalScore = myScores.bugScore;
+  }
+  else if (myScores.whatScore === "archery score") {
+    finalScore = myScores.archeryScore;
   }
 
   // Display only the relevant score
@@ -641,13 +658,13 @@ function displayOutroScreen() {
 
   // Play cheer sound if the player reaches the score threshold
   // Play cheer sound if the player gets 10+ points, but only once
-  if ((archeryScore >= 15 || bugScore >= 10) && !cheerPlayed) {
+  if ((myScores.archeryScore >= 15 || myScores.bugScore >= 10) && !cheerPlayed) {
     cheerSound.play();
     cheerPlayed = true;
   }
 
   // Play booing sound if the player gets less than 10 points, but only once
-  if ((archeryScore < 15 && bugScore < 10) && !booingPlayed) {
+  if (myScores.archeryScore < 15 && myScores.bugScore < 10 && !booingPlayed) {
     booingSound.play();
     booingPlayed = true;
   }
