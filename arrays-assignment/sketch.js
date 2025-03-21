@@ -1,6 +1,11 @@
 // two mini games
-// 1. bug game - catch the bug from the net (make sure the bug is close to the loop of the net)
-// 2. archery game - use wasd or arrow keys to move the archer, space to shoot. try to shoot as much as arrows you can.
+// 1. bug game - catch the bug from the net in 35 seconds. try to get over 10 points
+// (make sure the bug is close to the loop of the net)
+// 2. archery game - use wasd or arrow keys to move the archer, space to shoot. try to get over 15 points
+// you can also angle the cursor towards teh target and shoot with x. game ends in 30 seconds
+//  
+// use v to mute sound and mouse wheel to control sound
+//
 // Ranu Jayawickrama
 // March 10th
 //
@@ -21,6 +26,15 @@ let possibleKeys = "cdefghijklmnopqrstuwxyz"; // Define keys to choose from
 let volumeChangeAmount = 0.05; // volume to change iwth mouse wheel
 let arrowAngle = 0; // To store the angle of the arrow
 let theBugs = [];//to store unique info for each bug
+
+// music and sound effects
+let introMusic;
+let archeryMusic;
+let bugMusic;
+let bowSound;
+let memeSound;
+let bugCatchSound;
+let cheerSound;
 
 //archer game images
 let myImages = {
