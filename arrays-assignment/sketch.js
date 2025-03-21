@@ -690,7 +690,8 @@ function displayIntroScreen() {
   text("Archery Game:", width / 2, height * 0.7);
   text("Use W/A/S/D or arrow keys to move", width / 2, height * 0.75);
   text("Press SPACE to shoot an arrow at the moving target as much as you can for 30 seconds", width / 2, height * 0.8);
-  text("[] if you are lucky, you will find a secret key that reveals a big secret []", width / 2, height * 0.9);
+  text("You can also angle the cursor towards the target and press x to shoot", width / 2, height * 0.85);
+  text("[] if you are lucky, you will find a secret key that reveals a big secret []", width / 2, height * 0.95);
 }
 
 // Display outro screen with game results and instructions
