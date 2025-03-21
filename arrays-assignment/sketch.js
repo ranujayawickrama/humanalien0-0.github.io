@@ -189,7 +189,7 @@ function setup() {
 //press mouse to catch a bug
 function mousePressed() {
 
-   // Loop through all bugs and check if one was clicked
+  // Loop through all bugs and check if one was clicked
   for (let insect of theBugs) {
     if (dist(mouseX, mouseY, insect.x, insect.y) < myBug.bugWidth / 2) {
       let index = theBugs.indexOf(insect);
@@ -255,7 +255,7 @@ function displayImages() {
     image(myImages.arrow, myArrow.arrowX, myArrow.arrowY, myArrow.arrowWidth, myArrow.arrowHeight);
     image(myImages.target, myTarget.targetX, myTarget.targetY, myTarget.targetWidth, myTarget.targetHeight);
   }
-}
+} 
 
 function spawnBug(){
   // info of a bug
@@ -281,7 +281,7 @@ function bugMovement(){
     imageMode(CENTER);
     image(myBug.bug, insect.x, insect.y, myBug.bugWidth, myBug.bugHeight);
     
-   // move bubble
+    // move bubble
     insect.timeX += insect.bugSpeed;
     insect.timeY += insect.bugSpeed;
   }
