@@ -402,3 +402,4 @@ function restartGame() {
   targetX = width / 1.5;
   targetY = height / 2;
 }
+
