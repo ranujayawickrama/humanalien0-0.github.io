@@ -3,7 +3,7 @@
 // (make sure the bug is close to the loop of the net)
 // 2. archery game - use wasd or arrow keys to move the archer, space to shoot. try to get over 15 points
 // you can also angle the cursor towards teh target and shoot with x. game ends in 30 seconds
-//  
+// press a random alphabetic key to play a meme sound.
 // use v to mute sound and mouse wheel to control sound
 //
 // Ranu Jayawickrama
