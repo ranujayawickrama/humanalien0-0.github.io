@@ -9,6 +9,7 @@ let cellSize;
 const SQUARE_DIMENSIONS = 10;
 let grid;
 
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
 
@@ -33,6 +34,9 @@ function keyPressed() {
   if (key === "r") {
     grid = generateRandomGrid(SQUARE_DIMENSIONS, SQUARE_DIMENSIONS);
   }
+  else if (key === "e") {
+    grid = generateRandomGrid(SQUARE_DIMENSIONS, SQUARE_DIMENSIONS);
+  }
 }
 
 function displayGrid() {
@@ -40,6 +44,7 @@ function displayGrid() {
     for (let x = 0; x < SQUARE_DIMENSIONS; x++) {
       if (grid[y][x] === 1) {
         fill("black");
+
       }
       else if (grid[y][x] === 0) {
         fill("white");
@@ -74,4 +79,21 @@ function generateRandomGrid(cols, rows) {
     }
   }
   return newGrid;
+}
+
+function mouseClicked(){
+  let x = Math.floor(mouseX/cellSize);
+  let y = Math.floor(mouseY/cellSize);
+  
+  toggleCell(x, y);
+}
+
+function toggleCell(x, y){
+  if (grid[y][x]=== 1){
+    grid[y][x] = 0;
+
+  }
+  else if (grid[y][x]=== 0){
+    grid[y][x] = 1;
+  }
 }

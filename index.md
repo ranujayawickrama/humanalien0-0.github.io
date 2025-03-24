@@ -7,6 +7,7 @@
 - [Terrain Genereation](06-terrain)
 - [bubbles object notation](07-bubbles)
 - [2D array grid](08-grid)
+- [grid neighbours](09-neighbours)
 
 # CS30 Projects
 - [interactive scene](interactive-scene)
