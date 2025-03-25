@@ -9,6 +9,7 @@
 - [2D array grid](08-grid)
 - [grid neighbours](09-neighbours)
 - [grid stuff](10-grid-stuff)
+- [game of life](11-game-of-life)
 
 # CS30 Projects
 - [interactive scene](interactive-scene)
