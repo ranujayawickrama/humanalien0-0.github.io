@@ -14,3 +14,4 @@
 # CS30 Projects
 - [interactive scene](interactive-scene)
 - [Arrays assignment](arrays-assignment)
+- [grid based game](grid-based-assignment)
