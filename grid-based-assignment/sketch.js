@@ -3,6 +3,8 @@
 // March 28th
 
 // extras for experts - multiplayer, popup screen
+// april 5 -- reasearching about p5 party and multiplayer
+
 
 let cellSize;
 const CHESSBOARD_DIMENSIONS = 8;
@@ -13,11 +15,13 @@ function setup() {
 
   //make the largest square that fits
   if (height > width) {
-    cellSize = width / CHESSBOARD_DIMENSIONS;
+    cellSize = width / CHESSBOARD_DIMENSIONS - width*0.2;
   }
   else {
-    cellSize = height / CHESSBOARD_DIMENSIONS;
+    cellSize = height / CHESSBOARD_DIMENSIONS- height*0.02;
   }
+  console.log(width, height);//1592, 774
+
 
   grid = generateChessBoard(CHESSBOARD_DIMENSIONS, CHESSBOARD_DIMENSIONS);
 }
@@ -37,7 +41,6 @@ function displayChessBoard() {
       else if (grid[y][x] === 0) {
         fill("white");
       }
-      
       rect(x * cellSize, y * cellSize, cellSize);
     }
   }
