@@ -37,7 +37,7 @@ function displayChessBoard() {
       else if (grid[y][x] === 0) {
         fill("white");
       }
-       rect
+      
       rect(x * cellSize, y * cellSize, cellSize);
     }
   }
