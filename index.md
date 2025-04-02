@@ -14,6 +14,7 @@
 - [platformer loading text files](13-platformer)
 
 # CS30 Projects
+- [Testing](testing-stuff)
 - [interactive scene](interactive-scene)
 - [Arrays assignment](arrays-assignment)
 - [grid based game](grid-based-assignment)
