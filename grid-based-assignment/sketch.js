@@ -3,7 +3,8 @@
 // March 28th
 
 // extras for experts - multiplayer, popup screen
-// april 5 -- reasearching about p5 party and multiplayer
+// april 2 -- reasearching about p5 party and multiplayer
+// april 4 -- researching about movement of chess pieces
 
 
 let cellSize;
