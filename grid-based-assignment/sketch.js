@@ -1,70 +1,131 @@
-// chess game
-// Ranu jayawickrama
-// March 28th
+// 2D Array Rectangle Grid Demo
+// Pick a cell size, then fill the screen with as many as possible.
+// This will likely be rectangular instead of square...
 
-// extras for experts - multiplayer, popup screen
-// april 2 -- reasearching about p5 party and multiplayer
-// april 4 -- researching about movement of chess pieces
-
-
-let cellSize;
-const CHESSBOARD_DIMENSIONS = 8;
+const CELL_SIZE = 50;
 let grid;
+let rows;
+let cols;
+const OPEN_TILE = 0;
+const IMPASSIBLE = 1;
+const PLAYER = 9;
+let thePlayer = {
+  x: 0,
+  y: 0,
+};
+let grassImg;
+let pathImg;
+
+function preload() {
+  grassImg = loadImage("grass.png");
+  pathImg = loadImage("paving.png");
+}
+
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
+  createCanvas(windowWidth * 0.8, windowHeight * 0.8);
+  cols = Math.ceil(width/CELL_SIZE);
+  rows = Math.ceil(height/CELL_SIZE);
+  grid = generateRandomGrid(cols, rows);
 
-  //make the largest square that fits
-  if (height > width) {
-    cellSize = width / CHESSBOARD_DIMENSIONS - width*0.2;
-  }
-  else {
-    cellSize = height / CHESSBOARD_DIMENSIONS- height*0.02;
-  }
-  console.log(width, height);//1592, 774
-
-
-  grid = generateChessBoard(CHESSBOARD_DIMENSIONS, CHESSBOARD_DIMENSIONS);
+  //add the player to the grid
+  grid[thePlayer.y][thePlayer.x] = PLAYER;
 }
 
 function draw() {
   background(220);
-  displayChessBoard();
+  displayGrid();
 }
 
-function displayChessBoard() {
+function keyPressed() {
+  if (key === "w") {
+    //move up
+    movePlayer(thePlayer.x, thePlayer.y - 1);
+  }
+  if (key === "s") {
+    //move down
+    movePlayer(thePlayer.x, thePlayer.y + 1);
+  }
+  if (key === "a") {
+    //move left
+    movePlayer(thePlayer.x - 1, thePlayer.y);
+  }
+  if (key === "d") {
+    //move right
+    movePlayer(thePlayer.x + 1, thePlayer.y);
+  }
+}
 
-  for (let y = 0; y < CHESSBOARD_DIMENSIONS; y++) {
-    for (let x = 0; x < CHESSBOARD_DIMENSIONS; x++) {
-      if (grid[y][x] === 1) {
-        fill("black");
-      }
-      else if (grid[y][x] === 0) {
-        fill("white");
-      }
-      rect(x * cellSize, y * cellSize, cellSize);
+function movePlayer(x, y) {
+  if (x >= 0 && x < cols && y >= 0 && y <= rows && grid[y][x] === OPEN_TILE) {
+    //previous player location
+    let oldX = thePlayer.x;
+    let oldY = thePlayer.y;
+  
+    //keep track of where the player is now
+    thePlayer.x = x;
+    thePlayer.y = y;
+  
+    //reset the old spot to be open
+    grid[oldY][oldX] = OPEN_TILE;
+  
+    //put player on grid
+    grid[thePlayer.y][thePlayer.x] = PLAYER;
+  }
+}
+
+function mousePressed() {
+  let x = Math.floor(mouseX/CELL_SIZE);
+  let y = Math.floor(mouseY/CELL_SIZE);
+
+  //self
+  toggleCell(x, y);
+}
+
+function toggleCell(x, y) {
+  //make sure cell you're toggling is actually in the grid
+  if (x >= 0 && x < cols && y >= 0 && y < rows) {
+    if (grid[y][x] === OPEN_TILE) {
+      grid[y][x] = IMPASSIBLE;
+    }
+    else if (grid[y][x] === IMPASSIBLE) {
+      grid[y][x] = OPEN_TILE;
     }
   }
 }
 
-function generateChessBoard(cols, rows) {
-  let aChessBoard = [];
-  let isWhite = true;
+function displayGrid() {
   for (let y = 0; y < rows; y++) {
-    aChessBoard.push([]);
-    isWhite = !isWhite;//change the pattern when starting a new row
     for (let x = 0; x < cols; x++) {
+      if (grid[y][x] === OPEN_TILE) {
+        // fill("white");
+        image(pathImg, x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      }
+      else if (grid[y][x] === IMPASSIBLE) {
+        // fill("black");
+        image(grassImg, x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      }
+      else if (grid[y][x] === PLAYER) {
+        fill("red");
+        square(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE);
+      }
+    }
+  }
+}
 
-      if (isWhite) {
-        aChessBoard[y].push(0);
-        isWhite = false;
+function generateRandomGrid(cols, rows) {
+  let newGrid = [];
+  for (let y = 0; y < rows; y++) {
+    newGrid.push([]);
+    for (let x = 0; x < cols; x++) {
+      //toss a 0 or 1 in randomly
+      if (random(100) < 50) {
+        newGrid[y].push(0);
       }
       else {
-        aChessBoard[y].push(1);
-        isWhite = true;
+        newGrid[y].push(1);
       }
     }
   }
-  return aChessBoard;
+  return newGrid;
 }
-
