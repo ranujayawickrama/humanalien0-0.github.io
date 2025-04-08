@@ -1,8 +1,17 @@
-html {
+html, body {
+  html {
   margin: 0;
   padding: 0;
-}
- 
-canvas {
+  }
+  
+  body {
+    position: absolute;
+    top: 52%;
+    left: 75%;
+    transform: translate(-50%, -50%);
+   }
+   
+  canvas {
   display: block;
+  }
 }
