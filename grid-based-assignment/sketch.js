@@ -15,6 +15,43 @@ let blackPieces = ['P', 'R', 'N', 'B', 'Q', 'K'];
 let whatPieces = "white pieces";
 let currentTurn = "white"; // Track whose turn it is
 
+// let blackPawn, blackRook, blackKnight, blackBishop, blackQueen, blackKing;// white chess pieces
+// let whitePawn, whiteRook, whiteKnight, whiteBishop, whiteQueen, whiteKing;// white chess pieces
+let whitePieces = {
+  pawn,
+  rook,
+  knight,
+  bishop,
+  queen,
+  king,
+};
+
+let blackPieces = {
+  pawn,
+  rook,
+  knight,
+  bishop,
+  queen,
+  king,
+};
+
+function preload(){
+  whitePieces.pawn = loadImage("WPawn.png");
+  whitePieces.rook = loadImage("WRook.png");
+  whitePieces.knight = loadImage("WKnight.png");
+  whitePieces.bishop = loadImage("WBishop.png");
+  whitePieces.queen = loadImage("WQueen.png");
+  whitePieces.king = loadImage("WKing.png");
+ 
+  blackPieces.pawn = loadImage("BPawn.png");
+  blackPieces.rook = loadImage("BRook.png");
+  blackPieces.knight = loadImage("BKnight.png");
+  blackPieces.bishop = loadImage("BBishop.png");
+  blackPieces.queen = loadImage("BQueen.png");
+  blackPieces.king = loadImage("BKing.png");
+
+}
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
   //make the largest square that fits
