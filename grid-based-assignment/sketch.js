@@ -1,25 +1,57 @@
-let CHESSBOARD_DIMENSIONS = 8;
-let cellSize;
-let board = [];
-let xOffset, yOffset;
+// chess-ish game
+//capture the enemy king to win
+//
+// Ranu Jayawickrama
+// March 26th
+//
+// Extra for Experts:
+// used object properties (ie. type:"something", colour:"green")
+// used forEach to iterate through and load chess pieces to the initial board
+// used object destructuring
+//  using alerts
 
-let whitePieces = { pawn: null, rook: null, knight: null, bishop: null, queen: null, king: null };
-let blackPieces = { pawn: null, rook: null, knight: null, bishop: null, queen: null, king: null };
+// Board elements
+const CHESSBOARD_DIMENSIONS = 8; // 8x8 chess board
+let cellSize;                     
+let board = [];                  
+let xOffset, yOffset;// offsets for centering the board
 
-let currentTurn = "white";
+// chess pieces
+// white chess pieces
+let whitePieces = { 
+  pawn: null,
+  rook: null, 
+  knight: null, 
+  bishop: null, 
+  queen: null, 
+  king: null 
+};
 
-let selectedPieceScale = 1.25;  // Factor to increase size when selected
-let defaultPieceScale = 1; // Default size of the piece
+// Black chess pieces
+let blackPieces = { 
+  pawn: null, 
+  rook: null, 
+  knight: null, 
+  bishop: null, 
+  queen: null, 
+  king: null 
+};
+
+// Selection variables
 let selectedPiece = null;
 let selectedRow = -1;
 let selectedCol = -1;
-let gameOver = false;
-let winner = null;
+let selectedPieceScale = 1.25;//to increase piece size when selected
+let defaultPieceScale = 1;// normal piece size
 
+let currentTurn = "white";// to track which player's turn it is
+let gameOver = false;// to check game state       
+let winner = null;// to check winner  
+let showInstructions = true;//instructions promt          
 
-
-// ===== PRELOAD IMAGES =====
+//load all the chess pieces
 function preload() {
+  // Load white pieces
   whitePieces.pawn = loadImage("chess-pawn-white.png");
   whitePieces.rook = loadImage("chess-rook-white.png");
   whitePieces.knight = loadImage("chess-knight-white.png");
@@ -27,6 +59,7 @@ function preload() {
   whitePieces.queen = loadImage("chess-queen-white.png");
   whitePieces.king = loadImage("chess-king-white.png");
 
+  // Load black pieces
   blackPieces.pawn = loadImage("chess-pawn-black.png");
   blackPieces.rook = loadImage("chess-rook-black.png");
   blackPieces.knight = loadImage("chess-knight-black.png");
@@ -35,449 +68,443 @@ function preload() {
   blackPieces.king = loadImage("chess-king-black.png");
 }
 
-
-// ===== SETUP =====
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  
-  // Use our dedicated function to calculate cellSize, xOffset, and yOffset.
-  calculateBoardDimensions(); // <-- This sets cellSize, xOffset, and yOffset.
-  
-  initBoard();
-  
-  // REMOVED: Duplicate recalculation that was here in the original code.
+  calculateBoardDimensions(); // Calculate initial board dimensions
+  initialBoard(); // Set up starting piece positions
 }
 
-
-// ===== MAIN DRAW LOOP =====
 function draw() {
-  background(255);
+  background("cyan");
+  
+  //show instructions at the start
+  if (showInstructions) {
+    drawInstructions();
+    return;
+  }
+
+  // display chess board, pieces and the indicator of what player's turn
   drawBoard();
   drawPieces();
-  drawTurnIndicator(); // Add this line to draw the turn indicator
-
+  displayPlayerTurn();
+  
+  // display outro screen
   if (gameOver) {
     drawEndScreen();
-    noLoop();
+    noLoop(); // Stop animation when game ends
   }
 }
 
 
-// ===== INITIALIZE BOARD =====
-function initBoard() {
+function initialBoard() {
+
+  // draw empty chess board
   board = [];
-  for (let i = 0; i < CHESSBOARD_DIMENSIONS; i++) {
+  for (let y = 0; y < CHESSBOARD_DIMENSIONS; y++) {
     let row = [];
-    for (let j = 0; j < CHESSBOARD_DIMENSIONS; j++) {
+    for (let x = 0; x < CHESSBOARD_DIMENSIONS; x++) {
       row.push(null);
     }
     board.push(row);
   }
 
-  // Pawns
+  // Set up pawns
   for (let i = 0; i < CHESSBOARD_DIMENSIONS; i++) {
-    board[1][i] = { type: "pawn", color: "black" };
-    board[6][i] = { type: "pawn", color: "white" };
+    board[1][i] = { type: "pawn", color: "black" }; // Black pawns
+    board[6][i] = { type: "pawn", color: "white" }; // White pawns
   }
 
-  // Rooks
-  board[0][0] = board[0][7] = { type: "rook", color: "black" };
-  board[7][0] = board[7][7] = { type: "rook", color: "white" };
-
-  // Knights
-  board[0][1] = board[0][6] = { type: "knight", color: "black" };
-  board[7][1] = board[7][6] = { type: "knight", color: "white" };
-
-  // Bishops
-  board[0][2] = board[0][5] = { type: "bishop", color: "black" };
-  board[7][2] = board[7][5] = { type: "bishop", color: "white" };
-
-  // Queens
-  board[0][3] = { type: "queen", color: "black" };
-  board[7][3] = { type: "queen", color: "white" };
-
-  // Kings
-  board[0][4] = { type: "king", color: "black" };
-  board[7][4] = { type: "king", color: "white" };
+  // Set up other pieces
+  const PIECE_ORDER = ["rook", "knight", "bishop", "queen", "king", "bishop", "knight", "rook"];
+  
+  // Black back row
+  PIECE_ORDER.forEach((type, col) => {
+    board[0][col] = { type, color: "black" };
+  });
+  
+  // White back row
+  PIECE_ORDER.forEach((type, col) => {
+    board[7][col] = { type, color: "white" };
+  });
 }
 
 
-// ===== DRAW BOARD =====
 function drawBoard() {
-  // Set rectMode to CORNER so that squares are drawn consistently.
-  rectMode(CORNER);
+  rectMode(CORNER); // Draw from top-left corner
+  stroke(0);//boarders for the chess squares
+  strokeWeight(1);
   
   for (let row = 0; row < CHESSBOARD_DIMENSIONS; row++) {
     for (let col = 0; col < CHESSBOARD_DIMENSIONS; col++) {
-      if ((row + col) % 2 === 0) {
-        fill(240);
-      }
-      else {
-        fill(100);
-      }
-      stroke(0); // Draw square borders
-      strokeWeight(1);
-      rect(xOffset + col * cellSize, yOffset + row * cellSize, cellSize, cellSize);
+      fill((row + col) % 2 === 0 ? 240 : "lightgreen");// draw white and black squares alternately
+      rect(xOffset + col * cellSize, yOffset + row * cellSize, cellSize, cellSize);//offset used to center the chess board
     }
   }
 }
 
-
-// ===== DRAW PIECES =====
+// draw the pieces on the chess board in their relative square
 function drawPieces() {
   for (let row = 0; row < CHESSBOARD_DIMENSIONS; row++) {
     for (let col = 0; col < CHESSBOARD_DIMENSIONS; col++) {
-      let piece = board[row][col];
-      if (piece) {
-        let x = xOffset + col * cellSize;
-        let y = yOffset + row * cellSize;
-        displayPiece(piece, x, y, row, col); // Pass row and col to displayPiece
+      const PIECE = board[row][col];
+      if (PIECE) {
+        const X_COR = xOffset + col * cellSize;
+        const Y_COR = yOffset + row * cellSize;
+        displayPiece(PIECE, X_COR, Y_COR, row, col);
       }
     }
   }
 }
 
-
-// ===== DISPLAY A PIECE =====
+// Draws an individual piece and increases the size of a piece when selected
 function displayPiece(piece, x, y, row, col) {
-  let img;
-  if (piece.color === "white") {
-    img = whitePieces[piece.type];
-  }
-  else {
-    img = blackPieces[piece.type];
-  }
-
-  let scale = selectedPiece && selectedRow === row && selectedCol === col ? selectedPieceScale : defaultPieceScale;
-
-  if (img) {
-    let imgSize = cellSize * scale;
-    // Center the image in the cell so it doesn't appear shifted.
-    let centerX = x + cellSize / 2 - imgSize / 2;
-    let centerY = y + cellSize / 2 - imgSize / 2;
-    image(img, centerX, centerY, imgSize, imgSize);
-  }
+  const IMG = piece.color === "white" ? whitePieces[piece.type] : blackPieces[piece.type];
+  
+  // setting up constants to change the size of the piece if selected 
+  const IS_SELECTED = selectedPiece && selectedRow === row && selectedCol === col;
+  const SCALE_OF_PIECES = IS_SELECTED ? selectedPieceScale : defaultPieceScale;
+  const IMG_SIZE = cellSize * SCALE_OF_PIECES;
+  
+  // setting up constants to center the piece in its square
+  const CENTER_PIECE_X = x + cellSize / 2 - IMG_SIZE / 2;
+  const CENTER_PIECE_Y = y + cellSize / 2 - IMG_SIZE / 2;
+  image(IMG, CENTER_PIECE_X, CENTER_PIECE_Y, IMG_SIZE, IMG_SIZE);// center and scale piece
 }
 
 
-// ====== SELECTION & MOVEMENT ======
-function mousePressed() {
-  if (gameOver) {
-    // Check if Play Again button was clicked
-    let btnX = width / 2;
-    let btnY = height / 2 + 50;
-    let btnW = 150;
-    let btnH = 40;
+// Draws  indicator showing which player's turn it is
+function displayPlayerTurn() {
 
-    if (mouseX > btnX - btnW / 2 && mouseX < btnX + btnW / 2 &&
-        mouseY > btnY - btnH / 2 && mouseY < btnY + btnH / 2) {
-      restartGame();
-    }
+  // setting up indicator size and position 
+  const INDICATOR_X = xOffset + CHESSBOARD_DIMENSIONS * cellSize + 20;// 20 pixels Space
+  const INDICATOR_Y = yOffset;
+  const INDICATOR_SIZE = 60;
+  
+  // Draw colored square indicating current turn
+  fill(currentTurn === "white" ? 255 : 0);
+  stroke(0);
+  strokeWeight(1);
+  rect(INDICATOR_X, INDICATOR_Y, INDICATOR_SIZE, INDICATOR_SIZE);
+  
+  // display who's turn
+  textSize(20);
+  fill(0);
+  noStroke();
+  textAlign(LEFT, TOP);
+  text(`${currentTurn === "white" ? "White" : "Black"}'s turn`, 
+    INDICATOR_X + INDICATOR_SIZE + 10, INDICATOR_Y);
+}
+
+// Handles mouse clicks for piece selection and movement
+function mousePressed() {
+
+  // if the game finsihed, display new chess board
+  if (gameOver) {
+    checkRestartClick();
     return;
   }
 
+  //if the piece is moved inside the board cordinates
   const { row, col } = getClickedCell();
   if (!isValidCell(row, col)) {
     return;
   }
 
-  const clickedPiece = board[row][col];
+  const CLICKED_PIECE = board[row][col];//loacation of the clicked piece
 
+  // If a piece is already selected, try to move it to the clicked square
   if (selectedPiece) {
-    handlePieceMovement(clickedPiece, row, col);
+    handlePieceMovement(CLICKED_PIECE, row, col);
   }
-  else if (clickedPiece && clickedPiece.color === currentTurn) {
-    selectPiece(clickedPiece, row, col);
+
+  // or if a piece was clicked and it's that player's turn, select it
+  else if (CLICKED_PIECE && CLICKED_PIECE.color === currentTurn) {
+    selectPiece(CLICKED_PIECE, row, col);
   }
 }
 
-
-// Helper function to get the clicked cell
+// Gets the board coordinates of a mouse click
 function getClickedCell() {
-  const col = floor((mouseX - xOffset) / cellSize);
-  const row = floor((mouseY - yOffset) / cellSize);
-  return { row, col };
+  return {
+    row: floor((mouseY - yOffset) / cellSize),
+    col: floor((mouseX - xOffset) / cellSize)
+  };
 }
 
-
-// Helper function to check if the clicked cell is valid (within the board's boundaries)
+// Checks if board coordinates are valid
 function isValidCell(row, col) {
-  return row >= 0 && row < CHESSBOARD_DIMENSIONS && col >= 0 && col < CHESSBOARD_DIMENSIONS;
+  return row >= 0 && row < CHESSBOARD_DIMENSIONS && 
+         col >= 0 && col < CHESSBOARD_DIMENSIONS;
 }
 
-
-// Handle piece selection
+// Selects a piece for movement
 function selectPiece(piece, row, col) {
   selectedPiece = piece;
   selectedRow = row;
   selectedCol = col;
 }
 
-
-// Handle movement of the selected piece
+// to move a selected piece
 function handlePieceMovement(clickedPiece, row, col) {
-  // If the clicked piece is the same color as the selected piece, reselect it.
+  // to move a different piece after clicking on another one if clicking same color piece
   if (clickedPiece && clickedPiece.color === selectedPiece.color) {
     selectPiece(clickedPiece, row, col);
     return;
   }
 
-  // Validate and perform the move based on the piece type.
-  const moveValidator = getMoveValidator(selectedPiece.type);
-  if (moveValidator && moveValidator(selectedPiece, selectedRow, selectedCol, row, col)) {
-    movePiece(row, col);
-    switchTurn();
+  // if the move is valid, execute move
+  const IS_MOVE_VALID = isTheMoveValid(selectedPiece.type);
+  if (IS_MOVE_VALID?.(selectedPiece, selectedRow, selectedCol, row, col)) {
+    executeMove(row, col);
+    switchTurn();// switch the turn to the other player
   }
 }
 
-
-// Get the appropriate move validation function based on the piece type
-function getMoveValidator(pieceType) {
-  const pieceValidators = {
-    "rook": isValidRookMove,
-    "bishop": isValidBishopMove,
-    "queen": isValidQueenMove,
-    "knight": isValidKnightMove,
-    "king": isValidKingMove,
-    "pawn": isValidPawnMove
+// check if the move is valid for each type of piece
+function isTheMoveValid(pieceType) {
+  const MOVEMENT_ANALYSES = {
+    pawn: isValidPawnMove,
+    rook: isValidRookMove,
+    knight: isValidKnightMove,
+    bishop: isValidBishopMove,
+    queen: isValidQueenMove,
+    king: isValidKingMove
   };
-  return pieceValidators[pieceType];
+  return MOVEMENT_ANALYSES[pieceType];
 }
 
-
-// Move the selected piece to a new position
-function movePiece(row, col) {
-  let targetPiece = board[row][col];
+// Executes a move and checks for game end
+function executeMove(row, col) {
+  const TARGET_PIECE = board[row][col];
   
-  // Check if the move captures a king.
-  if (targetPiece && targetPiece.type === "king") {
+  // Check if the king got captured (game over)
+  if (TARGET_PIECE?.type === "king") {
     gameOver = true;
-    winner = selectedPiece.color; // current player wins
+    winner = selectedPiece.color;
   }
 
+  // Move the piece
   board[row][col] = selectedPiece;
   board[selectedRow][selectedCol] = null;
+  
+  // Clear selection
   selectedPiece = null;
   selectedRow = -1;
   selectedCol = -1;
 }
 
-
-// Switch the current turn (from white to black or vice versa)
+// Switches turn to the other player
 function switchTurn() {
   currentTurn = currentTurn === "white" ? "black" : "white";
 }
 
-
-// ===== ROOK MOVEMENT LOGIC =====
+// movement of pieces
+// Each if the rook is moved correcty 
 function isValidRookMove(piece, fromRow, fromCol, toRow, toCol) {
-  if (fromRow === toRow) {
-    // Moving horizontally.
-    let direction = toCol > fromCol ? 1 : -1;
-    for (let col = fromCol + direction; col !== toCol; col += direction) {
-      if (board[fromRow][col] !== null) {
-        return false; // Blocked by a piece.
-      }
-    }
-  }
-  else if (fromCol === toCol) {
-    // Moving vertically.
-    let direction = toRow > fromRow ? 1 : -1;
-    for (let row = fromRow + direction; row !== toRow; row += direction) {
-      if (board[row][fromCol] !== null) {
-        return false; // Blocked by a piece.
-      }
-    }
-  }
-  else {
-    return false; // Not a valid rook move (must be straight-line).
-  }
-
-  // Capture logic: Do not capture your own piece.
-  let targetPiece = board[toRow][toCol];
-  if (targetPiece && targetPiece.color === piece.color) {
+  // if rook not moving straight, not valid move
+  if (fromRow !== toRow && fromCol !== toCol) {
     return false;
   }
-
-  return true;
-}
-
-
-// ===== PAWN MOVEMENT LOGIC =====
-function isValidPawnMove(piece, fromRow, fromCol, toRow, toCol) {
-  let direction = piece.color === "white" ? -1 : 1;
-  let startRow = piece.color === "white" ? 6 : 1;
-  let targetPiece = board[toRow][toCol];
-  let rowStep = toRow - fromRow;
-  let colDiff = Math.abs(toCol - fromCol);
-
-  let isForward = fromCol === toCol;
-  let isSingleStep = rowStep === direction && isForward && !targetPiece;
-  let isDoubleStep =
-    fromRow === startRow &&
-    rowStep === 2 * direction &&
-    isForward &&
-    !board[fromRow + direction][fromCol] &&
-    !targetPiece;
-
-  let isCapture =
-    rowStep === direction &&
-    colDiff === 1 &&
-    targetPiece &&
-    targetPiece.color !== piece.color;
-
-  return isSingleStep || isDoubleStep || isCapture;
-}
-
-
-// ===== BISHOP MOVEMENT LOGIC =====
-function isValidBishopMove(piece, fromRow, fromCol, toRow, toCol) {
-  // Check if the move is diagonal.
-  let rowDiff = Math.abs(toRow - fromRow);
-  let colDiff = Math.abs(toCol - fromCol);
   
-  if (rowDiff !== colDiff) {
-    return false; // Bishops can only move diagonally.
-  }
-
-  // Check if the path is clear.
-  let rowDirection = toRow > fromRow ? 1 : -1;
-  let colDirection = toCol > fromCol ? 1 : -1;
-
-  for (let i = 1; i < rowDiff; i++) {
-    let intermediateRow = fromRow + i * rowDirection;
-    let intermediateCol = fromCol + i * colDirection;
-
-    if (board[intermediateRow][intermediateCol] !== null) {
-      return false; // Blocked by a piece.
+  //gets the direction of the movement
+  const ROOK_DIRECTION = fromRow === toRow ? 
+    { row: 0, col: toCol > fromCol ? 1 : -1 } : 
+    { row: toRow > fromRow ? 1 : -1, col: 0 };
+  
+  // Check if the path is clear
+  let rows = fromRow + ROOK_DIRECTION.row;
+  let columns = fromCol + ROOK_DIRECTION.col;
+  while (rows !== toRow || columns !== toCol) {
+    if (board[rows][columns] !== null) {
+      return false;
     }
+    rows += ROOK_DIRECTION.row;
+    columns += ROOK_DIRECTION.col;
   }
-
-  // Capture logic.
-  let targetPiece = board[toRow][toCol];
-  if (targetPiece && targetPiece.color === piece.color) {
-    return false;
-  }
-
-  return true;
+  
+  // Check target square
+  const TARGET = board[toRow][toCol];
+  return !TARGET || TARGET.color !== piece.color;
 }
 
+// Each if the pawn is moved correcty 
+function isValidPawnMove(piece, fromRow, fromCol, toRow, toCol) {
+  const PAWN_DIRECTION = piece.color === "white" ? -1 : 1;//direction
+  const START_ROW = piece.color === "white" ? 6 : 1;//To move white pawns or black pawns
+  const TARGET = board[toRow][toCol];// target location
+  const ROW_DIFFERENCE = toRow - fromRow;
+  const COL_DIFFERENCE = Math.abs(toCol - fromCol);
 
-// ===== KNIGHT MOVEMENT LOGIC =====
-function isValidKnightMove(piece, fromRow, fromCol, toRow, toCol) {
-  let rowDiff = Math.abs(toRow - fromRow);
-  let colDiff = Math.abs(toCol - fromCol);
+  // Forward moves
+  if (fromCol === toCol) {
+    // Single step forward
+    if (ROW_DIFFERENCE === PAWN_DIRECTION && !TARGET) {
+      return true;
+    }
 
-  if (rowDiff === 2 && colDiff === 1 || rowDiff === 1 && colDiff === 2) {
+    // Double step from start position
+    if (fromRow === START_ROW && ROW_DIFFERENCE === 2 * PAWN_DIRECTION && 
+        !board[fromRow + PAWN_DIRECTION][fromCol] && !TARGET) {
+      return true;
+    }
+  } 
+
+  // Captures
+  else if (COL_DIFFERENCE === 1 && ROW_DIFFERENCE === PAWN_DIRECTION && 
+           TARGET && TARGET.color !== piece.color) {
     return true;
   }
 
   return false;
 }
 
+// check if the bishop is moved correctly
+function isValidBishopMove(piece, fromRow, fromCol, toRow, toCol) {
+  const ROW_DIFFERENCE = Math.abs(toRow - fromRow);
+  if (ROW_DIFFERENCE !== Math.abs(toCol - fromCol)) {
+    return false;
+  } // Not diagonal
 
-// ===== QUEEN MOVEMENT LOGIC =====
+  // movement direction
+  const ROW_DIRECTION = toRow > fromRow ? 1 : -1;
+  const COL_DIRECTION = toCol > fromCol ? 1 : -1;
+
+  // Check path is clear
+  for (let i = 1; i < ROW_DIFFERENCE; i++) {
+    if (board[fromRow + i * ROW_DIRECTION][fromCol + i * COL_DIRECTION] !== null) {
+      return false;
+    }
+  }
+
+  // Check target square
+  const TARGET = board[toRow][toCol];
+  return !TARGET || TARGET.color !== piece.color;
+}
+
+// does the knight move correcty
+function isValidKnightMove(piece, fromRow, fromCol, toRow, toCol) {
+  const ROW_DIFFERENCE = Math.abs(toRow - fromRow);
+  const COL_DIFFERNCE = Math.abs(toCol - fromCol);
+  return ROW_DIFFERENCE === 2 && COL_DIFFERNCE === 1 || ROW_DIFFERENCE === 1 && COL_DIFFERNCE === 2;//movement pattern
+}
+
+// does the queen move correcty
 function isValidQueenMove(piece, fromRow, fromCol, toRow, toCol) {
-  // Queen can move like a rook or bishop.
-  if (fromRow === toRow || fromCol === toCol) {
-    return isValidRookMove(piece, fromRow, fromCol, toRow, toCol);
-  }
-  if (Math.abs(toRow - fromRow) === Math.abs(toCol - fromCol)) {
-    return isValidBishopMove(piece, fromRow, fromCol, toRow, toCol);
-  }
-  return false;
+  // Queen combines rook and bishop movement
+  return isValidRookMove(piece, fromRow, fromCol, toRow, toCol) || 
+         isValidBishopMove(piece, fromRow, fromCol, toRow, toCol);
 }
 
-
-// ===== KING MOVEMENT LOGIC =====
+// is king moved correctly
 function isValidKingMove(piece, fromRow, fromCol, toRow, toCol) {
-  let rowDiff = Math.abs(toRow - fromRow);
-  let colDiff = Math.abs(toCol - fromCol);
-
-  return rowDiff <= 1 && colDiff <= 1;
+  const ROW_DIFFERENCE = Math.abs(toRow - fromRow);
+  const COL_DIFFERENCE = Math.abs(toCol - fromCol);
+  return ROW_DIFFERENCE <= 1 && COL_DIFFERENCE <= 1;
 }
 
-
-// ===== END SCREEN =====
+//  Draws the game over screen
 function drawEndScreen() {
-  // Use a semi-transparent overlay.
+  // mild transparency overlay to blur background
   fill(0, 0, 0, 150);
-  // Important: Set rectMode to CORNER for full-window rect.
   rectMode(CORNER);
   rect(0, 0, width, height);
 
-  // Draw the centered box for the end screen.
+  // End game message box
   fill(255);
   stroke(0);
   strokeWeight(2);
   rectMode(CENTER);
   rect(width / 2, height / 2, 400, 200, 20);
 
-  // Winner text.
+  // Winner text
   noStroke();
   textAlign(CENTER, CENTER);
   textSize(36);
   fill(winner === "white" ? "#000" : "#111");
-  text(`${capitalize(winner)} Wins!`, width / 2, height / 2 - 30);
+  text(`${winner.charAt(0).toUpperCase() + winner.slice(1)} Wins!`, 
+    width / 2, height / 2 - 30);
 
-  // Play Again button.
+  // Restart button
   fill(200);
   rect(width / 2, height / 2 + 50, 150, 40, 10);
   fill(0);
   textSize(20);
   text("Play Again", width / 2, height / 2 + 50);
+
+  // Show popup
+  setTimeout(() => {
+    alert(`${winner.charAt(0).toUpperCase() + winner.slice(1)} wins!`);
+  }, 100);
 }
 
 
-function capitalize(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
+
+// Checks if restart button was clicked
+function checkRestartClick() {
+  const BUTTON_X = width / 2;
+  const BUTTON_Y = height / 2 + 50;
+  const BUTTON_WIDTH = 150;
+  const BUTTON_HEIGHT = 40;
+
+  // if so, restart game
+  if (mouseX > BUTTON_X - BUTTON_WIDTH/2 && mouseX < BUTTON_X + BUTTON_WIDTH/2 &&
+      mouseY > BUTTON_Y - BUTTON_HEIGHT/2 && mouseY < BUTTON_Y + BUTTON_HEIGHT/2) {
+    restartGame();
+  }
 }
 
-
+// Resets the elements to initial state
 function restartGame() {
-  // Recalculate the board dimensions.
   calculateBoardDimensions();
-  initBoard();
+  initialBoard();
   gameOver = false;
   winner = null;
   currentTurn = "white";
   selectedPiece = null;
   selectedRow = -1;
   selectedCol = -1;
-  loop(); // Restart the draw loop.
+  loop(); // Restart animation
 }
 
-
-// ===== CALCULATE BOARD DIMENSIONS =====
+// Calculates board dimensions based on window size
 function calculateBoardDimensions() {
-  // Calculate cellSize based on window size.
-  if (height > width) {
-    cellSize = width / CHESSBOARD_DIMENSIONS - width / 100;
-  }
-  else {
-    cellSize = height / CHESSBOARD_DIMENSIONS - height / 100;
-  }
-
-  // Center the board on the canvas.
+  // Size board based on smaller size
+  const MINI_DIMENSIONS = min(width, height);
+  cellSize = MINI_DIMENSIONS / CHESSBOARD_DIMENSIONS * 0.9; // 90% of available space
+  
+  // Center the board
   xOffset = (width - cellSize * CHESSBOARD_DIMENSIONS) / 2;
   yOffset = (height - cellSize * CHESSBOARD_DIMENSIONS) / 2;
 }
 
-function drawTurnIndicator() {
-  let indicatorX = xOffset + CHESSBOARD_DIMENSIONS * cellSize + 20;
-  let indicatorY = yOffset;
-  let indicatorWidth = 60;
-  let indicatorHeight = 60;
+function drawInstructions() {
+  // mild transparent overlay to blur background
+  fill(0, 0, 0, 200);
+  rectMode(CORNER);
+  rect(0, 0, width, height);
   
-  fill(currentTurn === "white" ? 255 : 0);
+  // Instruction box
+  fill(255);
   stroke(0);
-  strokeWeight(1);
-  rect(indicatorX, indicatorY, indicatorWidth, indicatorHeight);
+  strokeWeight(2);
+  rectMode(CENTER);
+  rect(width/2, height/2, 600, 400, 20);
   
-  textSize(20);
+  // Instruction text
+  textAlign(CENTER, CENTER);
   fill(0);
   noStroke();
-  textAlign(LEFT, TOP);
-  text(currentTurn === "white" ? "White's turn" : "Black's turn", 
-    indicatorX + indicatorWidth + 5, indicatorY);
+  textSize(28);
+  text("Chess Game Instructions", width/2, height/2 - 120);
+  
+  textSize(18);
+  text("Click on your piece to select it\nThen according to basic chess movement patterns, move it\n\nCapture the enemy king to win\n\nPress any key to begin", 
+    width/2, height/2);
+}
+
+// exit show instructions after any key is pressed
+function keyPressed() {
+  if (showInstructions) {
+    showInstructions = false;
+  }
 }
