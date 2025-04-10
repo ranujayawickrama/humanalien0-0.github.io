@@ -68,7 +68,7 @@ function preload() {
   blackPieces.queen = loadImage("chess-queen-black.png");
   blackPieces.king = loadImage("chess-king-black.png");
 
-  pieceMoveSound= loadSound("ChessMoveSound.mp3");
+  pieceMoveSound= loadSound("ChessMoveSound.wav");
 }
 
 function setup() {
