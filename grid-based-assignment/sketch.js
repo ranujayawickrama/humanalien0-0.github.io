@@ -15,6 +15,7 @@ const CHESSBOARD_DIMENSIONS = 8; // 8x8 chess board
 let cellSize;                     
 let board = [];                  
 let xOffset, yOffset;// offsets for centering the board
+let pieceMoveSound;//sound effect when chess piece moves
 
 // chess pieces
 // white chess pieces
@@ -66,6 +67,8 @@ function preload() {
   blackPieces.bishop = loadImage("chess-bishop-black.png");
   blackPieces.queen = loadImage("chess-queen-black.png");
   blackPieces.king = loadImage("chess-king-black.png");
+
+  pieceMoveSound= loadSound("ChessMoveSound.mp3");
 }
 
 function setup() {
@@ -256,6 +259,7 @@ function handlePieceMovement(clickedPiece, row, col) {
   const IS_MOVE_VALID = isTheMoveValid(selectedPiece.type);
   if (IS_MOVE_VALID?.(selectedPiece, selectedRow, selectedCol, row, col)) {
     executeMove(row, col);
+    pieceMoveSound.play();
     switchTurn();// switch the turn to the other player
   }
 }
