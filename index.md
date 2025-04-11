@@ -12,6 +12,7 @@
 - [game of life](11-game-of-life)
 - [character moving in grid](12-character-grid)
 - [platformer loading text files](13-platformer)
+- [walker OOP](15-walker)
 
 # CS30 Projects
 - [Testing](testing-stuff)
