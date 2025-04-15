@@ -12,10 +12,15 @@
 - [game of life](11-game-of-life)
 - [character moving in grid](12-character-grid)
 - [platformer loading text files](13-platformer)
+- [Timer Library](14-timer)
 - [walker OOP](15-walker)
+- [Fireworks OOP](16-fireworks)
+- [organic conncetor OOP](17-organic-connector)
+
 
 # CS30 Projects
 - [Testing](testing-stuff)
 - [interactive scene](interactive-scene)
 - [Arrays assignment](arrays-assignment)
 - [grid based game](grid-based-assignment)
+
