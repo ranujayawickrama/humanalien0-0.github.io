@@ -16,6 +16,7 @@
 - [walker OOP](15-walker)
 - [Fireworks OOP](16-fireworks)
 - [organic conncetor OOP](17-organic-connector)
+- [translate demo](18-rotate)
 
 
 # CS30 Projects
