@@ -17,6 +17,7 @@
 - [Fireworks OOP](16-fireworks)
 - [organic conncetor OOP](17-organic-connector)
 - [translate demo](18-rotate)
+- [Local storage](19-local-storage)
 
 
 # CS30 Projects
