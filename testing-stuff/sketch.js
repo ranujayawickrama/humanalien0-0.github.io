@@ -1,156 +1,253 @@
-// Multiplayer chess
-// Ranu Jayawickrama
-// April 17th
+const GRID_DIMENSIONS = 3;
+let cellSize;
+let mainGrid = [];
+let xOffset, yOffset;
+let dragPath = [];
+let dragColor = null;
+let isDragging = false;
 
-// Extra for Experts:
-// - describe what you did to take this project "above and beyond"
-
-// Happy connect procedure
-// step 1 - create a square grid with pairs of dots with the same color placed in it
-// step 2 - create a function to control the path of the dots with the mouse
-// step 3 - create a function to display the path of the selcted dot
-// step 4 - create a function to detect whether the connceted dots are the same color
-
-// log
-// may 7th - researching about animations
-// may 9th - deep research about text files
-// May 12th, research about game rules.
-// May 13th, trying to implement 2D collision detection 
-const CHESSBOARD_DIMENSIONS =3; // 8x8 chess board
-let cellSize;                     
-let board = [];                  
-let xOffset, yOffset;// offsets for centering the board
-
-let dots = ["r", "g", "b"];
-
+let dots = ["red", "green", "blue"];
+let completedPaths = []; // Stores valid finished paths
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  calculateBoardDimensions(); // Calculate initial board dimensions
-  initialBoard(); // Set up starting piece positions
+  calculateGridDimensions();
+  initialGrid();
 }
 
 function draw() {
   background(20, 50, 100);
-  drawBoard();
-  //drawPieces();
+  drawGrid();
+  drawDots();
+  drawCompletedPaths();
+  drawDragPath();
 }
 
-// function initialBoard() {
-
-// }
-function calculateBoardDimensions() {
-  // Size board based on smaller size
+function calculateGridDimensions() {
   const MINI_DIMENSIONS = min(width, height);
-  cellSize = MINI_DIMENSIONS / CHESSBOARD_DIMENSIONS * 0.9; // 90% of available space
-  
-  // Center the board
-  xOffset = (width - cellSize * CHESSBOARD_DIMENSIONS) / 2;
-  yOffset = (height - cellSize * CHESSBOARD_DIMENSIONS) / 2;
+  cellSize = MINI_DIMENSIONS / GRID_DIMENSIONS * 0.9;
+  xOffset = (width - cellSize * GRID_DIMENSIONS) / 2;
+  yOffset = (height - cellSize * GRID_DIMENSIONS) / 2;
 }
 
-function drawBoard() {
-  rectMode(CORNER); // Draw from top-left corner
-  stroke(0);//boarders for the chess squares
-  strokeWeight(1);
-  
-  for (let row = 0; row < CHESSBOARD_DIMENSIONS; row++) {
-    for (let col = 0; col < CHESSBOARD_DIMENSIONS; col++) {
-      
-      stroke("white");
-      fill("black");// draw white and black squares alternately
-      rect(xOffset + col * cellSize, yOffset + row * cellSize, cellSize, cellSize);//offset used to center the chess board
-    }
-  }
-}
-
-
-function initialBoard() {
-
-  // draw empty chess board
-  board = [];
-  for (let y = 0; y < CHESSBOARD_DIMENSIONS; y++) {
+function initialGrid() {
+  for (let y = 0; y < GRID_DIMENSIONS; y++) {
     let row = [];
-    for (let x = 0; x < CHESSBOARD_DIMENSIONS; x++) {
+    for (let x = 0; x < GRID_DIMENSIONS; x++) {
       row.push(null);
     }
-    board.push(row);
+    mainGrid.push(row);
   }
 
-  for (let i = 0; i < CHESSBOARD_DIMENSIONS; i++) {
-    board[i][0] = board[i][2] = dots[i];
+  for (let i = 0; i < GRID_DIMENSIONS; i++) {
+    mainGrid[i][0] = mainGrid[i][2] = dots[i];
   }
-  console.log(board[0][1]);
-
 }
-function generateGrid(cols, rows) {
-  let newGrid = [];
-  for (let y = 0; y < rows; y++) {
-    newGrid.push([]);
-    for (let x = 0; x < cols; x++) {
-      newGrid[y].push(0);
+
+function drawGrid() {
+  rectMode(CORNER);
+  stroke(255);
+  strokeWeight(1);
+  for (let row = 0; row < GRID_DIMENSIONS; row++) {
+    for (let col = 0; col < GRID_DIMENSIONS; col++) {
+      fill("black");
+      rect(xOffset + col * cellSize, yOffset + row * cellSize, cellSize, cellSize);
     }
   }
-  return newGrid;
 }
 
-function drawPieces() {
-  for (let row = 0; row < CHESSBOARD_DIMENSIONS; row++) {
-    for (let col = 0; col < CHESSBOARD_DIMENSIONS; col++) {
-      const PIECE = board[row][col];
-      if (PIECE) {
-        const X_COR = xOffset + col * cellSize;
-        const Y_COR = yOffset + row * cellSize;
-        displayPiece(PIECE, X_COR, Y_COR, row, col);
+function drawDots() {
+  for (let row = 0; row < GRID_DIMENSIONS; row++) {
+    for (let col = 0; col < GRID_DIMENSIONS; col++) {
+      const dotColor = mainGrid[row][col];
+      if (dotColor) {
+        const x = xOffset + col * cellSize;
+        const y = yOffset + row * cellSize;
+        displayDots(dotColor, x, y);
       }
     }
   }
 }
 
-// Draws an individual piece and increases the size of a piece when selected
-function displayPiece(piece, x, y, row, col) {
-  const IMG = piece.color === "white" ? whitePieces[piece.type] : blackPieces[piece.type];
-  
-  // setting up constants to change the size of the piece if selected 
-  const IS_SELECTED = selectedPiece && selectedRow === row && selectedCol === col;
-  const SCALE_OF_PIECES = IS_SELECTED ? selectedPieceScale : defaultPieceScale;
-  const IMG_SIZE = cellSize * SCALE_OF_PIECES;
-  
-  // setting up constants to center the piece in its square
-  const CENTER_PIECE_X = x + cellSize / 2 - IMG_SIZE / 2;
-  const CENTER_PIECE_Y = y + cellSize / 2 - IMG_SIZE / 2;
-  image(IMG, CENTER_PIECE_X, CENTER_PIECE_Y, IMG_SIZE, IMG_SIZE);// center and scale piece
+function displayDots(color, x, y) {
+  const SIZE = cellSize * 0.4;
+  const centerX = x + cellSize / 2;
+  const centerY = y + cellSize / 2;
+  fill(color);
+  noStroke();
+  circle(centerX, centerY, SIZE);
 }
 
-function detectBreak(){
-
-}
-
-// 2D Collide Library Demo
-
-let hit = false;
-
-function setup() {
-  createCanvas(400, 400);
-  collideDebug(true);
-}
-
-function draw() {
-  background(255);
-  line(200, 300, 100, 150);
-  circle(mouseX, mouseY, 50);
-
-  hit = collideLineCircle(200, 300, 100, 150, mouseX, mouseY, 50);
-
-  if (hit) {
-    stroke('red');
+function mousePressed() {
+  const { row, col } = getCellFromMouse();
+  if (!isInsideGrid(row, col)) {
+    return;
   }
-  else {
-    stroke('black');
+
+  const color = mainGrid[row][col];
+  if (color) {
+    isDragging = true;
+    dragColor = color;
+    dragPath = [{ row, col }];
   }
-  
-  print('colliding?', hit);
 }
 
-//////////////////////////////////////////////////////////////////////
+function mouseDragged() {
+  if (!isDragging) {
+    return;
+  }
 
+  const { row, col } = getCellFromMouse();
+  if (!isInsideGrid(row, col)) {
+    return;
+  }
+
+  const last = dragPath[dragPath.length - 1];
+  if (last.row === row && last.col === col) {
+    return;
+  }
+
+  // Undo step if moving back
+  if (
+    dragPath.length > 1 &&
+    dragPath[dragPath.length - 2].row === row &&
+    dragPath[dragPath.length - 2].col === col
+  ) {
+    dragPath.pop();
+    return;
+  }
+
+  if (
+    (mainGrid[row][col] === null || mainGrid[row][col] === dragColor) &&
+    !dragPath.some(p => p.row === row && p.col === col) &&
+    cellsAreAdjacent(last.row, last.col, row, col)
+  ) {
+    const newSegA = cellToCenterXY(last);
+    const newSegB = cellToCenterXY({ row, col });
+
+    for (const pathObj of completedPaths) {
+      const pts = pathObj.path;
+      for (let i = 0; i < pts.length - 1; i++) {
+        const segA = cellToCenterXY(pts[i]);
+        const segB = cellToCenterXY(pts[i + 1]);
+        if (collideLineLine(
+          newSegA.x, newSegA.y,
+          newSegB.x, newSegB.y,
+          segA.x, segA.y,
+          segB.x, segB.y
+        )) {
+          removePath(pathObj);
+          // No resetDrag here, so new line stays
+          return;
+        }
+      }
+    }
+
+    dragPath.push({ row, col });
+  }
+}
+
+
+function mouseReleased() {
+  // Pure click = delete endpoint
+  if (dragPath.length === 1) {
+    const { row, col } = dragPath[0];
+    const color = mainGrid[row][col];
+    for (let i = completedPaths.length - 1; i >= 0; i--) {
+      const p = completedPaths[i];
+      if (p.color === color) {
+        const start = p.path[0];
+        const end   = p.path[p.path.length - 1];
+        if (start.row === row && start.col === col ||
+            end  .row === row && end  .col === col) {
+          removePath(p);
+          break;
+        }
+      }
+    }
+    resetDrag();
+    return;
+  }
+
+  // End of drag = validate
+  if (dragPath.length >= 2) {
+    const start = dragPath[0];
+    const end   = dragPath[dragPath.length - 1];
+    if (
+      mainGrid[end.row][end.col] === dragColor &&
+      (start.row !== end.row || start.col !== end.col)
+    ) {
+      completedPaths.push({ color: dragColor, path: [...dragPath] });
+    }
+  }
+
+  resetDrag();
+}
+
+function getCellFromMouse() {
+  const col = floor((mouseX - xOffset) / cellSize);
+  const row = floor((mouseY - yOffset) / cellSize);
+  return { row, col };
+}
+
+function isInsideGrid(row, col) {
+  return row >= 0 && row < GRID_DIMENSIONS && col >= 0 && col < GRID_DIMENSIONS;
+}
+
+function cellsAreAdjacent(r1, c1, r2, c2) {
+  return abs(r1 - r2) + abs(c1 - c2) === 1;
+}
+
+function resetDrag() {
+  dragPath = [];
+  dragColor = null;
+  isDragging = false;
+}
+
+function drawDragPath() {
+  if (!isDragging || dragPath.length < 2) {
+    return;
+  }
+  stroke(dragColor);
+  strokeWeight(6);
+  noFill();
+  beginShape();
+  for (let pt of dragPath) {
+    const { x, y } = cellToCenterXY(pt);
+    vertex(x, y);
+  }
+  endShape();
+}
+
+function drawCompletedPaths() {
+  for (let p of completedPaths) {
+    stroke(p.color);
+    strokeWeight(6);
+    noFill();
+    beginShape();
+    for (let pt of p.path) {
+      const { x, y } = cellToCenterXY(pt);
+      vertex(x, y);
+    }
+    endShape();
+  }
+}
+
+function cellToCenterXY(cell) {
+  return {
+    x: xOffset + cell.col * cellSize + cellSize / 2,
+    y: yOffset + cell.row * cellSize + cellSize / 2
+  };
+}
+
+function removePath(pathObj) {
+  // clear intermediate cells
+  for (let i = 1; i < pathObj.path.length - 1; i++) {
+    const c = pathObj.path[i];
+    mainGrid[c.row][c.col] = null;
+  }
+  const idx = completedPaths.indexOf(pathObj);
+  if (idx !== -1) {
+    completedPaths.splice(idx, 1);
+  }
+}
