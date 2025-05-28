@@ -17,6 +17,7 @@ function draw() {
   if (hit) {
     stroke('red');
   }
+  
   else {
     stroke('black');
   }
