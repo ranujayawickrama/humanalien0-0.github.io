@@ -20,6 +20,7 @@
 - [Local storage](19-local-storage)
 - [2D collide demo](20-2d-collide)
 - [Inheritance](21-inheritance)
+- [sierpinski treiangle](22-triangles)
 
 # CS30 Projects
 - [Testing](testing-stuff)

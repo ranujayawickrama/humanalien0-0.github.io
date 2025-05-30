@@ -511,6 +511,7 @@ function startScreen(){
       size[y][x] = dist(mouseX,mouseY, spacing/2 + x * spacing, spacing/2 + y * spacing) * scale;
     }
   }
+  
   for(let y = 0; y < rows; y++){
     for(let x= 0; x < cols; x++){
       fill(30);
