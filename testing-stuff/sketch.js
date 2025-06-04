@@ -504,7 +504,7 @@ function startScreen(){
 
   //the mouse animation
   ////////////////////////////
-  rectMode(CENTER);
+  rectMode(CENTER);// ignore for now
   for(let y = 0; y < rows; y++){
     size[y] = [];
     for(let x= 0; x < cols; x++){
