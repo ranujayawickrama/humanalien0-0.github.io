@@ -1,407 +1,195 @@
+// Connected Nodes with Gradient Dots & Dynamic Background
 
-const GRID_DIMENSIONS = 6;
-let cellSize;
-let mainGrid = [];
-let xOffset, yOffset;
-let dragPath = [];
-let dragColor = null;
-let isDragging = false;
+const DEFAULT_SPEED = 4;
+const DEFAULT_RADIUS = 40;
+const DEFAULT_REACH = 220;
+const MAX_RADIUS = 65;
+const MIN_RADIUS = 40;
+const DELTA_TIME = 0.01;
 
+let balls = [];
+let idCounter = 0;
+const MAX_BALLS = 40;
+let spawnInterval = 1000; // spawn every 1000ms = 1 second
+let lastSpawnTime = 0;
 
-let completedPaths = []; // Stores valid finished paths
-
-let whatPhase = "starting phase";
 
 function setup() {
+  
+
   createCanvas(windowWidth, windowHeight);
-  calculateGridDimensions();
-  generateDotPairs();      // ← place your dots
-  generatePuzzle();        // ← connect them automatically
+  GRADIENT_LEFT = color(255, 100, 150);  // Pinkish (left)
+  GRADIENT_RIGHT = color(100, 200, 255); // Bluish (right)
+
+  GRADIENT_TOP = color(255, 120, 80);    // Orangish (top)
+  GRADIENT_BOTTOM = color(180, 100, 255); // Purplish (bottom)
+
+
+  // Add one starting node in the center
+  balls.push(new MovingPoint(width / 2, height / 2));
 }
 
 function draw() {
-  // for now im gonna switch in here because the starting screen is not done yet
-  if (whatPhase === "starting phase"){ 
-    background(20, 50, 100);
-    drawGrid();
-    drawDots();
-    drawCompletedPaths();
-    drawDragPath();
-  }
-  else if (whatPhase === "connect phase"){
-    startScreen();
+  updateBackgroundColor();
+
+  // Timed spawn logic
+  if (millis() - lastSpawnTime > spawnInterval && balls.length < MAX_BALLS) {
+    let randX = random(width);
+    let randY = random(height);
+    balls.push(new MovingPoint(randX, randY));
+    lastSpawnTime = millis();
   }
 
-}
-const dots = ["red", "green", "blue"];
-
-
-function calculateGridDimensions() {
-  const MINI_DIMENSIONS = min(width, height);
-  cellSize = MINI_DIMENSIONS / GRID_DIMENSIONS * 0.9;
-  xOffset = (width - cellSize * GRID_DIMENSIONS) / 2;
-  yOffset = (height - cellSize * GRID_DIMENSIONS) / 2;
-}
-
-// Deterministic dot placement (6×6 grid, 6 colors)
-function generateDotPairs() {
-  // 1) Reset grid
-  mainGrid = [];
-  for (let r = 0; r < GRID_DIMENSIONS; r++) {
-    mainGrid.push(new Array(GRID_DIMENSIONS).fill(null));
+  for (let node of balls) {
+    node.update();
   }
 
-  // 2) Hard-coded dot pairs (tweak these coords as you like)
-  const pairs = [
-    { color: "red",    pos: [{ row: 0, col: 0 }, { row: 0, col: 5 }] },
-    { color: "green",  pos: [{ row: 5, col: 0 }, { row: 5, col: 5 }] },
-    { color: "blue",   pos: [{ row: 2, col: 2 }, { row: 3, col: 3 }] }
-  ];
-
-  // 3) Apply them to mainGrid
-  for (let { color, pos } of pairs) {
-    for (let { row, col } of pos) {
-      mainGrid[row][col] = color;
+  for (let i = 0; i < balls.length; i++) {
+    for (let j = i + 1; j < balls.length; j++) {
+      balls[i].connectTo(balls[j]);
     }
   }
 
-  // Clear any old paths
-  completedPaths = [];
-}
-
-function drawGrid() {
-  rectMode(CORNER);
-  stroke(255);
-  strokeWeight(1);
-  for (let row = 0; row < GRID_DIMENSIONS; row++) {
-    for (let col = 0; col < GRID_DIMENSIONS; col++) {
-      fill("black");
-      rect(xOffset + col * cellSize, yOffset + row * cellSize, cellSize, cellSize);
-    }
+  for (let node of balls) {
+    node.display();
   }
 }
 
-function drawDots() {
-  for (let row = 0; row < GRID_DIMENSIONS; row++) {
-    for (let col = 0; col < GRID_DIMENSIONS; col++) {
-      const dotColor = mainGrid[row][col];
-      if (dotColor) {
-        const x = xOffset + col * cellSize;
-        const y = yOffset + row * cellSize;
-        displayDots(dotColor, x, y);
-      }
-    }
-  }
-}
-
-function displayDots(color, x, y) {
-  const SIZE = cellSize * 0.4;
-  const centerX = x + cellSize / 2;
-  const centerY = y + cellSize / 2;
-  fill(color);
-  noStroke();
-  circle(centerX, centerY, SIZE);
-}
-
-function mousePressed() {
-  const { row, col } = getCellFromMouse();
-  if (!isInsideGrid(row, col)) {
+function updateBackgroundColor() {
+  if (balls.length === 0) {
+    background(20); // very dark if nothing is on screen
     return;
   }
 
-  const color = mainGrid[row][col];
-  if (color) {
-    isDragging = true;
-    dragColor = color;
-    dragPath = [{ row, col }];
-  }
-}
+  let totalR = 0, totalG = 0, totalB = 0;
 
-function mouseDragged() {
-  if (!isDragging) {
-    return;
+  for (let node of balls) {
+    let w = map(node.x, 0, width, 1.5, 0.5);
+    totalR += red(node.color) * w;
+    totalG += green(node.color) * w;
+    totalB += blue(node.color) * w;
   }
 
-  const { row, col } = getCellFromMouse();
-  if (!isInsideGrid(row, col)) {
-    return;
-  }
+  let avgR = totalR / balls.length;
+  let avgG = totalG / balls.length;
+  let avgB = totalB / balls.length;
 
-  const last = dragPath[dragPath.length - 1];
-  if (last.row === row && last.col === col) {
-    return;
-  }
-
-  // Undo step if moving back
-  if (
-    dragPath.length > 1 &&
-    dragPath[dragPath.length - 2].row === row &&
-    dragPath[dragPath.length - 2].col === col
-  ) {
-    dragPath.pop();
-    return;
-  }
-
-  if (
-    (mainGrid[row][col] === null || mainGrid[row][col] === dragColor) &&
-    !dragPath.some(p => p.row === row && p.col === col) &&
-    cellsAreAdjacent(last.row, last.col, row, col)
-  ) {
-    const newSegA = cellToCenterXY(last);
-    const newSegB = cellToCenterXY({ row, col });
-
-    for (const pathObj of completedPaths) {
-      const pts = pathObj.path;
-      for (let i = 0; i < pts.length - 1; i++) {
-        const segA = cellToCenterXY(pts[i]);
-        const segB = cellToCenterXY(pts[i + 1]);
-        if (collideLineLine(
-          newSegA.x, newSegA.y,
-          newSegB.x, newSegB.y,
-          segA.x, segA.y,
-          segB.x, segB.y
-        )) {
-          removePath(pathObj);
-          // No resetDrag here, so new line stays
-          return;
-        }
-      }
-    }
-
-    dragPath.push({ row, col });
-  }
+  // Darker background with color influence
+  background(avgR * 0.5, avgG * 0.5, avgB * 0.5, 70);
 }
 
 
-function mouseReleased() {
-  // Pure click = delete endpoint
-  if (dragPath.length === 1) {
-    const { row, col } = dragPath[0];
-    const color = mainGrid[row][col];
-    for (let i = completedPaths.length - 1; i >= 0; i--) {
-      const p = completedPaths[i];
-      if (p.color === color) {
-        const start = p.path[0];
-        const end   = p.path[p.path.length - 1];
-        if (start.row === row && start.col === col ||
-            end  .row === row && end  .col === col) {
-          removePath(p);
-          break;
-        }
-      }
-    }
-    resetDrag();
-    return;
+
+class MovingPoint {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.speed = DEFAULT_SPEED;
+    this.radius = DEFAULT_RADIUS;
+    this.reach = DEFAULT_REACH;
+    this.maxRadius = MAX_RADIUS;
+    this.minRadius = MIN_RADIUS;
+    let horiz = lerpColor(GRADIENT_LEFT, GRADIENT_RIGHT, this.x / width);
+    let vert = lerpColor(GRADIENT_TOP, GRADIENT_BOTTOM, this.y / height);
+    this.color = lerpColor(horiz, vert, 0.5);
+
+    this.xTime = random(1000);
+    this.yTime = random(1000);
+    this.id = idCounter++;
+    this.alpha = 0;
+    this.fadeSpeed = 5; // controls how fast it fades in
+
   }
 
-  // End of drag = validate
-  if (dragPath.length >= 2) {
-    const start = dragPath[0];
-    const end   = dragPath[dragPath.length - 1];
-    if (
-      mainGrid[end.row][end.col] === dragColor &&
-      (start.row !== end.row || start.col !== end.col)
-    ) {
-      completedPaths.push({ color: dragColor, path: [...dragPath] });
+  update() {
+    this.move();
+    this.wrapAroundScreen();
+    this.adjustSize();
+  }
+
+  display() {
+    noStroke();
+    let fadedColor = color(
+      red(this.color),
+      green(this.color),
+      blue(this.color),
+      this.alpha
+    );
+    fill(fadedColor);
+    circle(this.x, this.y, this.radius * 2);
+
+    // Gradually increase alpha for fade-in
+    if (this.alpha < 255) {
+      this.alpha += this.fadeSpeed;
+      this.alpha = min(this.alpha, 255);
     }
   }
 
-  resetDrag();
-}
-
-function getCellFromMouse() {
-  const col = floor((mouseX - xOffset) / cellSize);
-  const row = floor((mouseY - yOffset) / cellSize);
-  return { row, col };
-}
-
-function isInsideGrid(row, col) {
-  return row >= 0 && row < GRID_DIMENSIONS && col >= 0 && col < GRID_DIMENSIONS;
-}
-
-function cellsAreAdjacent(r1, c1, r2, c2) {
-  return abs(r1 - r2) + abs(c1 - c2) === 1;
-}
-
-function resetDrag() {
-  dragPath = [];
-  dragColor = null;
-  isDragging = false;
-}
-
-function drawDragPath() {
-  if (!isDragging || dragPath.length < 2) {
-    return;
-  }
-  stroke(dragColor);
-  strokeWeight(20);
-  noFill();
-  beginShape();
-  for (let pt of dragPath) {
-    const { x, y } = cellToCenterXY(pt);
-    vertex(x, y);
-  }
-  endShape();
-}
-
-function drawCompletedPaths() {
-  for (let p of completedPaths) {
-    stroke(p.color);
-    strokeWeight(20);
-    noFill();
-    beginShape();
-    for (let pt of p.path) {
-      const { x, y } = cellToCenterXY(pt);
-      vertex(x, y);
+  adjustSize() {
+    let mouseDistance = dist(mouseX, mouseY, this.x, this.y);
+    if (mouseDistance < this.reach) {
+      this.radius = map(mouseDistance, 0, this.reach, this.maxRadius, this.minRadius);
     }
-    endShape();
-  }
-}
-
-function cellToCenterXY(cell) {
-  return {
-    x: xOffset + cell.col * cellSize + cellSize / 2,
-    y: yOffset + cell.row * cellSize + cellSize / 2
-  };
-}
-
-function removePath(pathObj) {
-  // clear intersecting cells
-  for (let i = 1; i < pathObj.path.length - 1; i++) {
-    const c = pathObj.path[i];
-    mainGrid[c.row][c.col] = null;
-  }
-  const idx = completedPaths.indexOf(pathObj);
-  if (idx !== -1) {
-    completedPaths.splice(idx, 1);
-  }
-}
-
-function generatePuzzle() {
-  completedPaths = [];
-  // Clear all non-dot cells
-  for (let r = 0; r < GRID_DIMENSIONS; r++) {
-    for (let c = 0; c < GRID_DIMENSIONS; c++) {
-      if (!dots.includes(mainGrid[r][c])) {
-        mainGrid[r][c] = null;
-      }
+    else {
+      this.radius = this.minRadius;
     }
   }
 
-  if (backtrackPaths(0)) {
-    console.log("Puzzle generated successfully!");
-  } else {
-    console.log("Failed to generate puzzle.");
-  }
-}
-
-function backtrackPaths(colorIndex) {
-  if (colorIndex >= dots.length) {
-    return true; // all colors connected
-  }
-
-  const color = dots[colorIndex];
-  const start = findDot(color, true);
-  const end = findDot(color, false);
-
-  let path = [];
-  let visited = createEmptyGrid(false);
-
-  function dfs(r, c) {
-    if (r === end.row && c === end.col) {
-      path.push({ row: r, col: c });
-      return true;
-    }
-    visited[r][c] = true;
-    path.push({ row: r, col: c });
-
-    for (let n of getNeighbors(r, c)) {
-      if (!visited[n.row][n.col] && canUseCell(n.row, n.col, color)) {
-        if (dfs(n.row, n.col)) {
-          return true;
-        }
-      }
-    }
-
-    path.pop();
-    visited[r][c] = false;
-    return false;
-  }
-
-  if (dfs(start.row, start.col)) {
-    // Mark path in grid (excluding dots)
-    for (let p of path) {
-      if ((p.row !== start.row || p.col !== start.col) && (p.row !== end.row || p.col !== end.col)) {
-        mainGrid[p.row][p.col] = color;
-      }
-    }
-    completedPaths.push({ color, path: [...path] });
-
-    if (backtrackPaths(colorIndex + 1)) {
-      return true;
-    }
-
-    // Backtrack
-    for (let p of path) {
-      if ((p.row !== start.row || p.col !== start.col) && (p.row !== end.row || p.col !== end.col)) {
-        mainGrid[p.row][p.col] = null;
-      }
-    }
-    completedPaths.pop();
-  }
-  return false;
-}
-
-
-function findDot(color, first) {
-  let foundDots = [];
-  for (let r = 0; r < GRID_DIMENSIONS; r++) {
-    for (let c = 0; c < GRID_DIMENSIONS; c++) {
-      if (mainGrid[r][c] === color) {
-        foundDots.push({ row: r, col: c });
-        if (foundDots.length === 2) {
-          return first ? foundDots[0] : foundDots[1];
-        }
-      }
+  connectTo(otherNode) {
+    let distance = dist(this.x, this.y, otherNode.x, otherNode.y);
+    if (distance < this.reach) {
+      let alpha = map(distance, 0, this.reach, 255, 0);
+      stroke(
+        red(this.color),
+        green(this.color),
+        blue(this.color),
+        alpha
+      );
+      strokeWeight(5);
+      line(this.x, this.y, otherNode.x, otherNode.y);
     }
   }
-  // If only one dot or none found, return what was found
-  if (foundDots.length > 0) {
-    return first ? foundDots[0] : null;
+
+  move() {
+    let dx = noise(this.xTime);
+    let dy = noise(this.yTime);
+
+    dx = map(dx, 0, 1, -this.speed, this.speed);
+    dy = map(dy, 0, 1, -this.speed, this.speed);
+
+    this.x += dx;
+    this.y += dy;
+
+    this.xTime += DELTA_TIME;
+    this.yTime += DELTA_TIME;
   }
-  return null;
+
+  wrapAroundScreen() {
+    let margin = this.radius;
+
+    // Smooth horizontal wrapping
+    if (this.x < -margin) {
+      this.x = width + margin;
+      this.xTime = random(1000);
+    }
+    else if (this.x > width + margin) {
+      this.x = -margin;
+      this.xTime = random(1000);
+    }
+
+    // Smooth vertical wrapping
+    if (this.y < -margin) {
+      this.y = height + margin;
+      this.yTime = random(1000);
+    }
+    else if (this.y > height + margin) {
+      this.y = -margin;
+      this.yTime = random(1000);
+    }
+
+    // Recalculate color based on new position
+    let horiz = lerpColor(GRADIENT_LEFT, GRADIENT_RIGHT, this.x / width);
+    let vert = lerpColor(GRADIENT_TOP, GRADIENT_BOTTOM, this.y / height);
+    this.color = lerpColor(horiz, vert, 0.5);
+  }
 }
-
-function getNeighbors(r, c) {
-  const neighbors = [];
-  if (r > 0) {
-    neighbors.push({ row: r - 1, col: c });
-  }
-  if (r < GRID_DIMENSIONS - 1) {
-    neighbors.push({ row: r + 1, col: c });
-  }
-  if (c > 0) {
-    neighbors.push({ row: r, col: c - 1 });
-  }
-  if (c < GRID_DIMENSIONS - 1) {
-    neighbors.push({ row: r, col: c + 1 });
-  }
-  return neighbors;
-}
-
-function canUseCell(r, c, color) {
-  const cell = mainGrid[r][c];
-  return cell === null || cell === color;
-}
-
-
-function createEmptyGrid(val) {
-  const grid = [];
-  for (let i = 0; i < GRID_DIMENSIONS; i++) {
-    grid.push(new Array(GRID_DIMENSIONS).fill(val));
-  }
-  return grid;
-}
-
-////////////////////////////////////////////////////////////////////////
-
