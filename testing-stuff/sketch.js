@@ -1,195 +1,99 @@
-// Connected Nodes with Gradient Dots & Dynamic Background
+// OOP Pair Programming Starter Code
+// Your Names
+// The Date
 
-const DEFAULT_SPEED = 4;
-const DEFAULT_RADIUS = 40;
-const DEFAULT_REACH = 220;
-const MAX_RADIUS = 65;
-const MIN_RADIUS = 40;
-const DELTA_TIME = 0.01;
 
-let balls = [];
-let idCounter = 0;
-const MAX_BALLS = 40;
-let spawnInterval = 1000; // spawn every 1000ms = 1 second
-let lastSpawnTime = 0;
+// ------------------------------------------------------------------------- //
+// You don't need to edit this section, but you should read it carefully to 
+// understand what is required in the classes.
 
+let enterprise;
+let shipImage, bulletImage;
+
+function preload() {
+  shipImage = loadImage("assets/enterprise.png");
+  bulletImage = loadImage("assets/laser-shot.png");
+}
 
 function setup() {
-  
-
   createCanvas(windowWidth, windowHeight);
-  GRADIENT_LEFT = color(255, 100, 150);  // Pinkish (left)
-  GRADIENT_RIGHT = color(100, 200, 255); // Bluish (right)
-
-  GRADIENT_TOP = color(255, 120, 80);    // Orangish (top)
-  GRADIENT_BOTTOM = color(180, 100, 255); // Purplish (bottom)
-
-
-  // Add one starting node in the center
-  balls.push(new MovingPoint(width / 2, height / 2));
+  enterprise = new Ship(width/2, height/2, shipImage);
 }
 
 function draw() {
-  updateBackgroundColor();
-
-  // Timed spawn logic
-  if (millis() - lastSpawnTime > spawnInterval && balls.length < MAX_BALLS) {
-    let randX = random(width);
-    let randY = random(height);
-    balls.push(new MovingPoint(randX, randY));
-    lastSpawnTime = millis();
-  }
-
-  for (let node of balls) {
-    node.update();
-  }
-
-  for (let i = 0; i < balls.length; i++) {
-    for (let j = i + 1; j < balls.length; j++) {
-      balls[i].connectTo(balls[j]);
-    }
-  }
-
-  for (let node of balls) {
-    node.display();
-  }
+  background("black");
+  enterprise.update();
+  enterprise.display();
 }
 
-function updateBackgroundColor() {
-  if (balls.length === 0) {
-    background(20); // very dark if nothing is on screen
-    return;
-  }
+// function keyPressed() {
+//   // you only need to use this if you are doing the extra for experts...
+//   enterprise.handleKeyPress();
+// }
 
-  let totalR = 0, totalG = 0, totalB = 0;
+// ------------------------------------------------------------------------- //
+// Start editing here!
 
-  for (let node of balls) {
-    let w = map(node.x, 0, width, 1.5, 0.5);
-    totalR += red(node.color) * w;
-    totalG += green(node.color) * w;
-    totalB += blue(node.color) * w;
-  }
-
-  let avgR = totalR / balls.length;
-  let avgG = totalG / balls.length;
-  let avgB = totalB / balls.length;
-
-  // Darker background with color influence
-  background(avgR * 0.5, avgG * 0.5, avgB * 0.5, 70);
-}
-
-
-
-class MovingPoint {
-  constructor(x, y) {
+class Ship {
+  constructor(x, y, theImage) {
     this.x = x;
     this.y = y;
-    this.speed = DEFAULT_SPEED;
-    this.radius = DEFAULT_RADIUS;
-    this.reach = DEFAULT_REACH;
-    this.maxRadius = MAX_RADIUS;
-    this.minRadius = MIN_RADIUS;
-    let horiz = lerpColor(GRADIENT_LEFT, GRADIENT_RIGHT, this.x / width);
-    let vert = lerpColor(GRADIENT_TOP, GRADIENT_BOTTOM, this.y / height);
-    this.color = lerpColor(horiz, vert, 0.5);
-
-    this.xTime = random(1000);
-    this.yTime = random(1000);
-    this.id = idCounter++;
-    this.alpha = 0;
-    this.fadeSpeed = 5; // controls how fast it fades in
-
+    this.image = theImage;
+    this.dx = 5;
+    this.dy = 5;
+    
   }
 
   update() {
-    this.move();
-    this.wrapAroundScreen();
-    this.adjustSize();
+    if(keyIsDown(RIGHT_ARROW)){
+      this.x += this.dx;
+    }
+    if(keyIsDown(LEFT_ARROW)){
+      this.x -= this.dx;
+    }
+    if(keyIsDown(DOWN_ARROW)){
+      this.y += this.dy;
+    }
+    if(keyIsDown(UP_ARROW)){
+      this.y += this.dy;
+    }
+
+    // if doing extra for experts, show bullet(s)
   }
 
   display() {
-    noStroke();
-    let fadedColor = color(
-      red(this.color),
-      green(this.color),
-      blue(this.color),
-      this.alpha
-    );
-    fill(fadedColor);
-    circle(this.x, this.y, this.radius * 2);
-
-    // Gradually increase alpha for fade-in
-    if (this.alpha < 255) {
-      this.alpha += this.fadeSpeed;
-      this.alpha = min(this.alpha, 255);
-    }
+    this.image(width/2, height/2);
   }
 
-  adjustSize() {
-    let mouseDistance = dist(mouseX, mouseY, this.x, this.y);
-    if (mouseDistance < this.reach) {
-      this.radius = map(mouseDistance, 0, this.reach, this.maxRadius, this.minRadius);
-    }
-    else {
-      this.radius = this.minRadius;
-    }
-  }
-
-  connectTo(otherNode) {
-    let distance = dist(this.x, this.y, otherNode.x, otherNode.y);
-    if (distance < this.reach) {
-      let alpha = map(distance, 0, this.reach, 255, 0);
-      stroke(
-        red(this.color),
-        green(this.color),
-        blue(this.color),
-        alpha
-      );
-      strokeWeight(5);
-      line(this.x, this.y, otherNode.x, otherNode.y);
-    }
-  }
-
-  move() {
-    let dx = noise(this.xTime);
-    let dy = noise(this.yTime);
-
-    dx = map(dx, 0, 1, -this.speed, this.speed);
-    dy = map(dy, 0, 1, -this.speed, this.speed);
-
-    this.x += dx;
-    this.y += dy;
-
-    this.xTime += DELTA_TIME;
-    this.yTime += DELTA_TIME;
-  }
-
-  wrapAroundScreen() {
-    let margin = this.radius;
-
-    // Smooth horizontal wrapping
-    if (this.x < -margin) {
-      this.x = width + margin;
-      this.xTime = random(1000);
-    }
-    else if (this.x > width + margin) {
-      this.x = -margin;
-      this.xTime = random(1000);
-    }
-
-    // Smooth vertical wrapping
-    if (this.y < -margin) {
-      this.y = height + margin;
-      this.yTime = random(1000);
-    }
-    else if (this.y > height + margin) {
-      this.y = -margin;
-      this.yTime = random(1000);
-    }
-
-    // Recalculate color based on new position
-    let horiz = lerpColor(GRADIENT_LEFT, GRADIENT_RIGHT, this.x / width);
-    let vert = lerpColor(GRADIENT_TOP, GRADIENT_BOTTOM, this.y / height);
-    this.color = lerpColor(horiz, vert, 0.5);
+  handleKeyPress() {
+    // you only need to use this if you are doing the extra for experts...
+    // if you are, you should make a bullet if the space key was pressed
   }
 }
+
+// ------------------------------------------------------------------------- //
+
+// Extra for Experts 
+//  - you can instantiate a bullet (or a bullet array) within the Ship class,
+//    and call the display and update functions in the logical location of the 
+//    Ship class. If you create an array of bullets, you might want to think about
+//    when the bullets should be removed from the array...
+
+// class Bullet {
+//   constructor(x, y, dx, dy, theImage) {
+//     // define the variables needed for the bullet here
+//   }
+
+//   update() {
+//     // what does the bullet need to do during each frame? how do we know if it is off screen?
+//   }
+
+//   display() {
+//     // show the bullet
+//   }
+
+//   isOnScreen() {
+//     // check if the bullet is still on the screen
+//   }
+// }
+
